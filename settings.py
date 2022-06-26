@@ -1,1 +1,2 @@
 GENERATOR_SEED = 0
+SAVE_PATH_BASELINE = 'weights/baseline'
