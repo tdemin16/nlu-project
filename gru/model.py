@@ -1,7 +1,5 @@
 from torch import nn
 
-from settings import DEVICE
-
 class GRUAttention(nn.Module):
     def __init__(self, num_embeddings, embedding_dim=256):
         super().__init__()
@@ -11,9 +9,8 @@ class GRUAttention(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        print(x)
-        x = nn.utils.rnn.pad_sequence(x, batch_first=True).to(DEVICE)
         x = self.embedding(x)
         output, hidden_state = self.gru(x)
-        x = self.linear(hidden_state)
+        x = hidden_state.squeeze(0)
+        x = self.linear(x)
         return self.sigmoid(x)

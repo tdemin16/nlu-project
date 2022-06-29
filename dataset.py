@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 
 class SubjectivityDataset(Dataset):
     """
-    -1 are objective sentences
+    0 are objective sentences
     1 are subjective ones
     """
     def __init__(self, data, targets, text_pipeline):
@@ -12,7 +12,7 @@ class SubjectivityDataset(Dataset):
         assert len(data) == len(targets), "data and targets length is not the same"
 
         self.corpus = [text_pipeline(d) for d in data]
-        self.labels = torch.tensor(targets)
+        self.labels = targets
 
     def __len__(self):
         return len(self.labels)
@@ -23,7 +23,7 @@ class SubjectivityDataset(Dataset):
 
 class PolarityDataset(Dataset):
     """
-    -1 are negative documents
+    0 are negative documents
     1 are positive once
     """
     def __init__(self, data):
@@ -32,7 +32,7 @@ class PolarityDataset(Dataset):
         pos = data.paras(categories='pos')
         
         self.corpus = neg + pos
-        self.labels = [-1] * len(neg) + [1] * len(pos)
+        self.labels = [0] * len(neg) + [1] * len(pos)
 
     def __len__(self):
         return len(self.labels)

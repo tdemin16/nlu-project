@@ -3,17 +3,9 @@ import torch
 
 from sklearn.model_selection import train_test_split
 from torch import nn
+from torch.nn.utils.rnn import pad_sequence
 
 from settings import GENERATOR_SEED
-
-
-def collate_batch(batch):
-    """
-    Adapted from torch guide: https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html
-    """
-    label_list, text_list, offsets = [], [], [0]
-    for (_label, _text) in batch:
-        label_list.append(_label)
 
 
 def make_vocab(data):
@@ -21,9 +13,40 @@ def make_vocab(data):
     Return a mapping word to integer.
     """
     assert type(data) == set
-    vocab = {w: i for i, w in enumerate(data)}
-    vocab['<unk>'] = len(data)
+    # +1 to handle offset == 0
+    vocab = {w: i+1 for i, w in enumerate(data)}
+    vocab['<unk>'] = len(data) + 1
     return vocab
+
+
+def get_text_pipline(train_set):
+    """
+    Convert string to integers.
+    adapted from https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html
+    """
+    vocab = make_vocab(set([w for d in train_set for w in d]))
+    text_pipeline = lambda x: [vocab[w] if w in vocab.keys() else vocab['<unk>'] for w in x]
+    return text_pipeline, len(vocab.keys())
+
+
+def collate_fn(batch):
+    # adapted from https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html
+    text_list, label_list = [], []
+    for (_text, _label) in batch:
+        text_list.append(torch.tensor(_text))
+        label_list.append(_label)
+
+    x = pad_sequence(text_list, batch_first=True)
+    y = torch.tensor(label_list, dtype=torch.float)
+    return x, y
+
+
+def acc(y_est, y):
+    """
+    Compute the accuracy
+    """
+    y_est = torch.round(y_est)
+    return (y_est == y).sum()  
 
 
 def list2str(l):

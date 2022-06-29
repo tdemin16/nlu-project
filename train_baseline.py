@@ -30,7 +30,7 @@ def train_subjectivity_classifier():
     # build dataset
     corpus = [list2str(d) for d in obj] + [list2str(d) for d in subj]
     vectors = vectorizer.fit_transform(corpus)
-    targets = [-1] * len(obj) + [1] * len(subj)
+    targets = [0] * len(obj) + [1] * len(subj)
 
     # train and evaluate
     scores = cross_validate(eval_classifier, vectors, targets, cv=StratifiedKFold(n_splits=10), scoring=['f1_micro'])
@@ -62,7 +62,7 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     
     # build dataset
     vectors = vectorizer.fit_transform(filtered_corpus)
-    targets = [-1] * len(neg) + [1] * len(pos)
+    targets = [0] * len(neg) + [1] * len(pos)
 
     # train and evaluate
     scores = cross_validate(eval_classifier, vectors, targets, cv=StratifiedKFold(n_splits=10), scoring=['f1_micro'])
