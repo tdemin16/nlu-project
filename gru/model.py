@@ -1,7 +1,7 @@
 from torch import nn
 
 class GRUAttention(nn.Module):
-    def __init__(self, num_embeddings, embedding_dim=256):
+    def __init__(self, num_embeddings, embedding_dim=1024):
         super().__init__()
         self.embedding = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
         self.gru = nn.GRU(input_size=embedding_dim, hidden_size=embedding_dim, batch_first=True)

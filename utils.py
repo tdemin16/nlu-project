@@ -26,7 +26,7 @@ def get_text_pipline(train_set):
     """
     vocab = make_vocab(set([w for d in train_set for w in d]))
     text_pipeline = lambda x: [vocab[w] if w in vocab.keys() else vocab['<unk>'] for w in x]
-    return text_pipeline, len(vocab.keys())
+    return text_pipeline, len(vocab.keys()) + 1
 
 
 def collate_fn(batch):
@@ -46,7 +46,7 @@ def acc(y_est, y):
     Compute the accuracy
     """
     y_est = torch.round(y_est)
-    return (y_est == y).sum()  
+    return (y_est == y).sum() / y_est.size()[0]
 
 
 def list2str(l):

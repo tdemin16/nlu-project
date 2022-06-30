@@ -8,8 +8,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import cross_validate, StratifiedKFold
 
-from joblib import dump
-
 from utils import list2str, remove_objective_sents, make
 from settings import SAVE_PATH_BASELINE
 
