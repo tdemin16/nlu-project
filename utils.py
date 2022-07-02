@@ -1,9 +1,11 @@
+import numpy as np
 import os
 import torch
 
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_sequence
 
 from settings import GENERATOR_SEED
 
@@ -45,8 +47,7 @@ def acc(y_est, y):
     """
     Compute the accuracy
     """
-    y_est = torch.round(y_est)
-    return (y_est == y).sum() / y_est.size()[0]
+    return accuracy_score(y.detach().numpy(), torch.round(y_est).detach().numpy())
 
 
 def list2str(l):

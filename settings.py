@@ -7,3 +7,4 @@ BATCH_SIZE = 128
 EPOCHS = 25
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LR=10e-2
+MODEL_SIZE=256
