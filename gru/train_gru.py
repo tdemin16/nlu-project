@@ -20,6 +20,7 @@ def train(model, train_dl, optimizer):
     cum_loss = 0
     cum_acc = 0
 
+    model.train()
     for x, y in train_dl:
         optimizer.zero_grad()
 
@@ -44,6 +45,7 @@ def evaluate(model, val_dl):
     cum_loss = 0
     cum_acc = 0
 
+    model.eval()
     for x, y in val_dl:
         x = x.to(DEVICE)
         y = y.to(DEVICE)
@@ -82,10 +84,8 @@ def main():
     for i in range(EPOCHS):
         start = time.time()
 
-        model.train()
         loss_tr, acc_tr = train(model, train_dl, optimizer)
         
-        model.eval()
         loss_val, acc_val = evaluate(model, val_dl)
 
         print(f"""Epoch {i+1}

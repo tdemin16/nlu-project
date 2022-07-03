@@ -47,7 +47,7 @@ def acc(y_est, y):
     """
     Compute the accuracy
     """
-    return accuracy_score(y.detach().numpy(), torch.round(y_est).detach().numpy())
+    return accuracy_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
 
 
 def list2str(l):
