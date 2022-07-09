@@ -1,16 +1,12 @@
 from torch import nn
-from transformers import BertModel
+from transformers import AutoModelForSequenceClassification
 
 class Transformer(nn.Module):
     def __init__(self):
         super().__init__()
-        self.backbone = BertModel.from_pretrained("bert-base-uncased")
-        self.classifier = nn.Sequential(
-            nn.Linear(768, 1),
-            nn.Sigmoid()
-        )
+        self.model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=1)
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, x, a):
-        output, pooled_output = self.backbone(x, attention_mask=a, return_dict=False)
-        est = self.classifier(pooled_output)
-        return est
+        raw_output = self.model(x, attention_mask=a).logits
+        return self.sigmoid(raw_output)

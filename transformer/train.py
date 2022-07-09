@@ -83,19 +83,8 @@ def main():
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE)
 
     model = Transformer().to(DEVICE)
-
-    backbone, others = [], []
-    for param_name, param in model.named_parameters():
-        if param_name.startswith("backbone"):
-            backbone.append(param)
-        else:
-            others.append(param)
-
-    lr_specs = [
-        {"params": backbone, "lr": LR_TRANSFORMER},
-        {"params": others, "lr": LR}
-    ]
-    optimizer = optim.Adam(lr_specs, weight_decay=WEIGHT_DECAY)
+    print(model)
+    optimizer = optim.Adam(model.parameters(), lr=LR_TRANSFORMER, weight_decay=WEIGHT_DECAY)
 
     print("### Start Training ###")
     for i in range(EPOCHS):
