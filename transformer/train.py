@@ -84,7 +84,7 @@ def main():
 
     model = Transformer().to(DEVICE)
 
-    backbone = others = []
+    backbone, others = [], []
     for param_name, param in model.named_parameters():
         if param_name.startswith("backbone"):
             backbone.append(param)
