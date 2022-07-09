@@ -1,8 +1,7 @@
-import torch
-
 from torch import nn
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from settings import MODEL_SIZE
+from settings import MODEL_SIZE, PAD_TOKEN
 
 class AttentionBlock(nn.Module):
     def __init__(self, dim):
@@ -23,7 +22,7 @@ class AttentionBlock(nn.Module):
 class GRUAttention(nn.Module):
     def __init__(self, num_embeddings, embedding_dim=MODEL_SIZE):
         super().__init__()
-        self.embedding = nn.Embedding(num_embeddings, embedding_dim, padding_idx=0)
+        self.embedding = nn.Embedding(num_embeddings, embedding_dim, padding_idx=PAD_TOKEN)
         self.gru = nn.GRU(input_size=embedding_dim, hidden_size=embedding_dim, bidirectional=True, batch_first=True)
         self.attention = AttentionBlock(embedding_dim*2)
         self.classifier = nn.Sequential(
@@ -35,9 +34,12 @@ class GRUAttention(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x):
+    def forward(self, x, l):
         embedding = self.embedding(x)
-        output, hidden_state = self.gru(embedding)
+        packed_input = pack_padded_sequence(embedding, l.cpu().numpy(), batch_first=True)
+        packed_output, hidden_state = self.gru(packed_input)
+        output, input_sizes = pad_packed_sequence(packed_output, batch_first=True)
+        #print(self.attention(output).shape, output.shape, (self.attention(output) * output).shape, (self.attention(output) * output).sum(dim=1).shape)
         context_vector = (self.attention(output) * output).sum(dim=1)
         y_est = self.classifier(context_vector)
         return y_est

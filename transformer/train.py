@@ -2,18 +2,18 @@ import os
 import sys
 import time
 import torch
+from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from dataset import SubjectivityDataset
 
 from nltk.corpus import subjectivity
 from torch import optim, nn
 from torch.utils.data import DataLoader
 
-from model import GRUAttention
-from utils import acc, collate_fn, get_text_pipline, split_dataset, init_weights
-from settings import WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
+from dataset import SubjectivityDataset
+from model import Transformer
+from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, WEIGHT_DECAY
+from utils import split_dataset, acc
 
 
 def train(model, train_dl, optimizer):
@@ -21,13 +21,14 @@ def train(model, train_dl, optimizer):
     cum_acc = 0
 
     model.train()
-    for x, y in train_dl:
+    for x, a, y in tqdm(train_dl, leave=False):
         optimizer.zero_grad()
 
         x = x.to(DEVICE)
-        y = y.to(DEVICE)
+        a = a.to(DEVICE)
+        y = y.type(torch.float).to(DEVICE)
 
-        y_est = model(x)
+        y_est = model(x, a)
 
         loss = nn.BCELoss()(y_est, y.unsqueeze(-1))
         
@@ -46,11 +47,12 @@ def evaluate(model, val_dl):
     cum_acc = 0
 
     model.eval()
-    for x, y in val_dl:
+    for x, a, y in val_dl:
         x = x.to(DEVICE)
-        y = y.to(DEVICE)
-
-        y_est = model(x)
+        a = a.to(DEVICE)
+        y = y.type(torch.float).to(DEVICE)
+        
+        y_est = model(x, a)
 
         loss = nn.BCELoss()(y_est, y.unsqueeze(-1))
 
@@ -61,26 +63,30 @@ def evaluate(model, val_dl):
 
 
 def main():
+    print("### Transformer subjectivity training ###")
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
     labels = [0] * len(obj) + [1] * len(subj)
+    print(f"\tDataset Size: {len(labels)}")
+
     train_set, y_train, val_set, y_val, test_set, y_test = split_dataset(obj + subj, labels)
+    print(f"\tTrain: {len(train_set)}, Val: {len(val_set)}, Test: {len(test_set)}")
 
-    text_pipeline, vocab_size = get_text_pipline(train_set)
+    print(f"### Build Datasets ###")
+    train_set = SubjectivityDataset(train_set, y_train)
+    val_set = SubjectivityDataset(val_set, y_val)
+    test_set = SubjectivityDataset(test_set, y_test)
 
-    train_set = SubjectivityDataset(train_set, y_train, text_pipeline)
-    val_set = SubjectivityDataset(val_set, y_val, text_pipeline)
-    test_set = SubjectivityDataset(test_set, y_test, text_pipeline)
-    
-    train_dl = DataLoader(train_set, BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
-    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
-    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
+    print("### Build Dataloaders ###")
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE)
+    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE)
 
-    model = GRUAttention(num_embeddings=vocab_size).to(DEVICE)
-    #model.apply(init_weights)
-    
+    model = Transformer().to(DEVICE)
+
     optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+    print("### Start Training ###")
     for i in range(EPOCHS):
         start = time.time()
 

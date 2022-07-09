@@ -1,13 +1,12 @@
-import numpy as np
 import os
 import torch
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence, pack_sequence
+from torch.nn.utils.rnn import pad_sequence
 
-from settings import GENERATOR_SEED
+from settings import GENERATOR_SEED, PAD_TOKEN
 
 
 def make_vocab(data):
@@ -32,15 +31,33 @@ def get_text_pipline(train_set):
 
 
 def collate_fn(batch):
-    # adapted from https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html
-    text_list, label_list = [], []
-    for (_text, _label) in batch:
-        text_list.append(torch.tensor(_text))
-        label_list.append(_label)
+    # adapted from labs
+    def merge(sequences):
+        '''
+        merge from batch * sent_len to batch * max_len 
+        '''
+        lengths = [len(seq) for seq in sequences]
+        max_len = 1 if max(lengths)==0 else max(lengths)
+        # Matrix full of PAD_TOKEN (i.e. 0) with the shape
+        # batch_size X maximum length of a sequence
+        padded_seqs = torch.LongTensor(len(sequences), max_len).fill_(PAD_TOKEN)
+        for i, seq in enumerate(sequences):
+            end = lengths[i]
+            padded_seqs[i, :end] = seq # We copy each sequence into the matrix
+        
+        padded_seqs = padded_seqs.detach()  # We remove these tensors from the computational graph
+        return padded_seqs, lengths
 
-    x = pad_sequence(text_list, batch_first=True)
-    y = torch.tensor(label_list, dtype=torch.float)
-    return x, y
+    # Sort batch by seq length
+    batch.sort(key=lambda x: len(x[0]), reverse=True)
+    X = [x for x, y in batch]
+    y = [y for x, y in batch]
+    
+    X, lengths = merge(X)
+    y = torch.FloatTensor(y)
+    lengths = torch.LongTensor(lengths)
+
+    return X, y, lengths
 
 
 def acc(y_est, y):
