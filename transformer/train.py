@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 
 from dataset import SubjectivityDataset
 from model import Transformer
-from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, WEIGHT_DECAY
+from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, LR_TRANSFORMER, WEIGHT_DECAY
 from utils import split_dataset, acc
 
 
@@ -84,7 +84,18 @@ def main():
 
     model = Transformer().to(DEVICE)
 
-    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    backbone = others = []
+    for param_name, param in model.named_parameters():
+        if param_name.startswith("backbone"):
+            backbone.append(param)
+        else:
+            others.append(param)
+
+    lr_specs = [
+        {"params": backbone, "lr": LR_TRANSFORMER},
+        {"params": others, "lr": LR}
+    ]
+    optimizer = optim.Adam(lr_specs, weight_decay=WEIGHT_DECAY)
 
     print("### Start Training ###")
     for i in range(EPOCHS):
