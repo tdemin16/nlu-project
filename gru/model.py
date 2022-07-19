@@ -23,14 +23,14 @@ class GRUAttention(nn.Module):
     def __init__(self, num_embeddings, embedding_dim=MODEL_SIZE):
         super().__init__()
         self.embedding = nn.Embedding(num_embeddings, embedding_dim, padding_idx=PAD_TOKEN)
-        self.gru = nn.GRU(input_size=embedding_dim, hidden_size=embedding_dim, bidirectional=True, batch_first=True)
-        self.attention = AttentionBlock(embedding_dim*2)
+        self.gru = nn.GRU(input_size=embedding_dim, hidden_size=embedding_dim, batch_first=True)
+        self.attention = AttentionBlock(embedding_dim)
         self.classifier = nn.Sequential(
-            nn.Linear(embedding_dim*2, embedding_dim*2),
-            nn.BatchNorm1d(embedding_dim*2),
+            nn.Linear(embedding_dim, embedding_dim),
+            nn.BatchNorm1d(embedding_dim),
             nn.ReLU(),
 
-            nn.Linear(embedding_dim*2, 1),
+            nn.Linear(embedding_dim, 1),
             nn.Sigmoid()
         )
 
@@ -39,7 +39,6 @@ class GRUAttention(nn.Module):
         packed_input = pack_padded_sequence(embedding, l.cpu().numpy(), batch_first=True)
         packed_output, hidden_state = self.gru(packed_input)
         output, input_sizes = pad_packed_sequence(packed_output, batch_first=True)
-        #print(self.attention(output).shape, output.shape, (self.attention(output) * output).shape, (self.attention(output) * output).sum(dim=1).shape)
-        context_vector = (self.attention(output) * output).sum(dim=1)
-        y_est = self.classifier(context_vector)
+        # context_vector = (self.attention(output) * output).sum(dim=1)
+        y_est = self.classifier(output[:, -1, :])
         return y_est

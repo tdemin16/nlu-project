@@ -1,0 +1,42 @@
+import torch
+
+from torch.utils.data import Dataset
+
+from utils import map_seq
+
+class SubjectivityDataset(Dataset):
+    """
+    0 are objective sentences
+    1 are subjective ones
+    """
+    def __init__(self, data, targets, vocab):
+        super().__init__()
+        assert len(data) == len(targets), "data and targets length is not the same"
+        self.corpus = map_seq(data, vocab)
+        self.labels = targets
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, index):
+        return torch.Tensor(self.corpus[index]), self.labels[index]
+
+
+class PolarityDataset(Dataset):
+    """
+    0 are negative documents
+    1 are positive once
+    """
+    def __init__(self, data):
+        super().__init__()
+        neg = data.paras(categories='neg')
+        pos = data.paras(categories='pos')
+        
+        self.corpus = neg + pos
+        self.labels = [0] * len(neg) + [1] * len(pos)
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, index):
+        return self.corpus[index], self.labels[index]

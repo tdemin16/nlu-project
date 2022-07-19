@@ -1,10 +1,10 @@
+from collections import Counter
 import os
 import torch
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence
 
 from settings import GENERATOR_SEED, PAD_TOKEN
 
@@ -12,22 +12,35 @@ from settings import GENERATOR_SEED, PAD_TOKEN
 def make_vocab(data):
     """
     Return a mapping word to integer.
+    Adapted from labs.
     """
-    assert type(data) == set
-    # +1 to handle offset == 0
-    vocab = {w: i+1 for i, w in enumerate(data)}
-    vocab['<unk>'] = len(data) + 1
-    return vocab
+    data = set([w for d in data for w in d])
+    vocab = {"pad": PAD_TOKEN}
+    count = Counter(data)
+    for k in count.keys():
+        vocab[k] = len(vocab)
+
+    vocab["unk"] = len(vocab)
+    return vocab, len(vocab.keys())
 
 
-def get_text_pipline(train_set):
+def map_seq(data, vocab):
     """
     Convert string to integers.
-    adapted from https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html
+    adapted from lab.
     """
-    vocab = make_vocab(set([w for d in train_set for w in d]))
-    text_pipeline = lambda x: [vocab[w] if w in vocab.keys() else vocab['<unk>'] for w in x]
-    return text_pipeline, len(vocab.keys()) + 1
+    res = []
+    for doc in data:
+        tmp_doc = []
+        for w in doc:
+            if w in vocab:
+                tmp_doc.append(vocab[w])
+            else:
+                tmp_doc.append(vocab['unk'])
+
+        res.append(tmp_doc)
+
+    return res
 
 
 def collate_fn(batch):
@@ -98,7 +111,7 @@ def split_dataset(dataset, labels):
     """
 
     inter_set, test_set, inter_labels, y_test = train_test_split(dataset, labels, test_size=0.2, random_state=GENERATOR_SEED)
-    train_set, val_set, y_train, y_val = train_test_split(inter_set, inter_labels, test_size=0.2/0.8)
+    train_set, val_set, y_train, y_val = train_test_split(inter_set, inter_labels, test_size=0.2/0.8, random_state=GENERATOR_SEED) #! remove
     
     return train_set, y_train, val_set, y_val, test_set, y_test
 

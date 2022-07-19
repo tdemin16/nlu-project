@@ -12,7 +12,7 @@ from torch import optim, nn
 from torch.utils.data import DataLoader
 
 from model import GRUAttention
-from utils import acc, collate_fn, get_text_pipline, split_dataset, init_weights
+from utils import acc, collate_fn, make_vocab, split_dataset, init_weights
 from settings import WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
 
 
@@ -68,13 +68,13 @@ def main():
     labels = [0] * len(obj) + [1] * len(subj)
     train_set, y_train, val_set, y_val, test_set, y_test = split_dataset(obj + subj, labels)
 
-    text_pipeline, vocab_size = get_text_pipline(train_set)
+    vocab, vocab_size = make_vocab(train_set)
 
-    train_set = SubjectivityDataset(train_set, y_train, text_pipeline)
-    val_set = SubjectivityDataset(val_set, y_val, text_pipeline)
-    test_set = SubjectivityDataset(test_set, y_test, text_pipeline)
+    train_set = SubjectivityDataset(train_set, y_train, vocab)
+    val_set = SubjectivityDataset(val_set, y_val, vocab)
+    test_set = SubjectivityDataset(test_set, y_test, vocab)
     
-    train_dl = DataLoader(train_set, BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
     val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
