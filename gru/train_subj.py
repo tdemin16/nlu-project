@@ -6,15 +6,14 @@ import torch
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from dataset import SubjectivityDataset
-
 from nltk.corpus import subjectivity
 from torch import optim, nn
 from torch.utils.data import DataLoader
 
+from dataset import SubjectivityDataset
 from model import GRUAttention
-from utils import acc, collate_fn, make_vocab, split_dataset, init_weights
-from settings import WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
+from utils import acc, collate_fn, make, make_w2id, split_dataset, init_weights
+from settings import SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
 
 
 def train(model, train_dl, optimizer):
@@ -69,17 +68,17 @@ def main():
     labels = [0] * len(obj) + [1] * len(subj)
     train_set, y_train, val_set, y_val, test_set, y_test = split_dataset(obj + subj, labels)
 
-    vocab, vocab_size = make_vocab(train_set)
+    w2id, w2id_size = make_w2id(train_set)
 
-    train_set = SubjectivityDataset(train_set, y_train, vocab)
-    val_set = SubjectivityDataset(val_set, y_val, vocab)
-    test_set = SubjectivityDataset(test_set, y_test, vocab)
+    train_set = SubjectivityDataset(train_set, y_train, w2id)
+    val_set = SubjectivityDataset(val_set, y_val, w2id)
+    test_set = SubjectivityDataset(test_set, y_test, w2id)
     
     train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
     val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
-    model = GRUAttention(num_embeddings=vocab_size).to(DEVICE)
+    model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)
     
     optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
@@ -100,9 +99,9 @@ def main():
             new_best = True
 
         print(f"Epoch {i+1}")
-        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
-        print(f"\tValidation Loss: {loss_val:.3f}\tValidation Acc: {acc_val:.3f}")
-        print(f"\tElapsed: {time.time() - start:.3f}")
+        print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
+        print(f"\tValidation Loss: {loss_val:.2f}\tValidation Acc: {acc_val:.2f}")
+        print(f"\tElapsed: {time.time() - start:.2f}")
         if new_best: print("\tNew Best Model")
         
         print("")
@@ -110,6 +109,9 @@ def main():
     loss_ts, acc_ts = evaluate(best_model, test_dl)
     print(f"Performances on the Test Set")
     print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
+
+    make(SAVE_PATH_GRU)
+    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj.pth"))
 
 if __name__ == "__main__":
     main()

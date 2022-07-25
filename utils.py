@@ -9,38 +9,18 @@ from torch import nn
 from settings import GENERATOR_SEED, PAD_TOKEN
 
 
-def make_vocab(data):
+def make_w2id(data):
     """
     Return a mapping word to integer.
     Adapted from labs.
     """
     data = set([w for d in data for w in d])
-    vocab = {"pad": PAD_TOKEN}
-    count = Counter(data)
-    for k in count.keys():
-        vocab[k] = len(vocab)
+    w2id = {"pad": PAD_TOKEN}
+    for w in data:
+        w2id[w] = len(w2id)
 
-    vocab["unk"] = len(vocab)
-    return vocab, len(vocab.keys())
-
-
-def map_seq(data, vocab):
-    """
-    Convert string to integers.
-    adapted from lab.
-    """
-    res = []
-    for doc in data:
-        tmp_doc = []
-        for w in doc:
-            if w in vocab:
-                tmp_doc.append(vocab[w])
-            else:
-                tmp_doc.append(vocab['unk'])
-
-        res.append(tmp_doc)
-
-    return res
+    w2id["unk"] = len(w2id)
+    return w2id, len(w2id.keys())
 
 
 def collate_fn(batch):

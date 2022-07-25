@@ -15,46 +15,6 @@ from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, PAD_TOKEN, WEIGHT_DECAY
 from utils import acc, split_dataset
 
 
-def collate_fn(batch):
-    # adapted from labs
-    def merge(sequences):
-        '''
-        merge from batch * sent_len to batch * max_len 
-        '''
-        lengths = [len(seq) for seq in sequences]
-        max_len = 1 if max(lengths) == 0 else max(lengths)
-        # Matrix full of PAD_TOKEN (i.e. 0) with the shape
-        # batch_size X maximum length of a sequence
-        padded_seqs = torch.LongTensor(len(sequences), max_len).fill_(PAD_TOKEN)
-        for i, seq in enumerate(sequences):
-            end = lengths[i]
-            padded_seqs[i, :end] = seq # We copy each sequence into the matrix
-        
-        padded_seqs = padded_seqs.detach()  # We remove these tensors from the computational graph
-        return padded_seqs, lengths
-
-    # Sort batch by seq length
-    batch.sort(key=lambda x: len(x[0]), reverse=True)
-    X = [x for x, y in batch]
-    y = [y for x, y in batch]
-    
-    X, lengths = merge(X)
-    y = torch.FloatTensor(y)
-    lengths = torch.LongTensor(lengths)
-
-    return X, y, lengths
-
-
-def make_vocab(data):
-    vocab = set([w for doc in data for sent in doc for w in sent])
-    w2id = {"pad": PAD_TOKEN}
-    for w in vocab:
-        w2id[w] = len(w2id)
-
-    w2id["unk"] = len(w2id)
-    return w2id, len(w2id)
-
-
 def train(model, optimizer, train_dl):
     cum_loss = 0.
     cum_acc = 0.

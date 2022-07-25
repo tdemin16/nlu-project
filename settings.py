@@ -2,6 +2,7 @@ import torch
 
 GENERATOR_SEED=0
 SAVE_PATH_BASELINE='weights/baseline'
+SAVE_PATH_GRU='weights/gru'
 WEIGHT_DECAY=0
 BATCH_SIZE=4096
 EPOCHS=100
