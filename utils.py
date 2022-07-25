@@ -9,14 +9,13 @@ from torch import nn
 from settings import GENERATOR_SEED, PAD_TOKEN
 
 
-def make_w2id(data):
+def make_w2id(vocab):
     """
     Return a mapping word to integer.
     Adapted from labs.
     """
-    data = set([w for d in data for w in d])
     w2id = {"pad": PAD_TOKEN}
-    for w in data:
+    for w in vocab:
         w2id[w] = len(w2id)
 
     w2id["unk"] = len(w2id)

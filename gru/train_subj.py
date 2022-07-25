@@ -24,6 +24,7 @@ def train(model, train_dl, optimizer):
     model.train()
     for x, y, l in train_dl:
         optimizer.zero_grad()
+        
         x = x.to(DEVICE)
         y = y.to(DEVICE)
         l = l.to(DEVICE)
@@ -31,7 +32,6 @@ def train(model, train_dl, optimizer):
         y_est = model(x, l)
 
         loss = loss_fn(y_est, y.unsqueeze(-1))
-        
         loss.backward()
         optimizer.step()
 
@@ -54,6 +54,7 @@ def evaluate(model, val_dl):
         l = l.to(DEVICE)
         
         y_est = model(x, l)
+
         loss = loss_fn(y_est, y.unsqueeze(-1))
 
         cum_loss += loss.item()
@@ -66,13 +67,14 @@ def main():
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
     labels = [0] * len(obj) + [1] * len(subj)
-    train_set, y_train, val_set, y_val, test_set, y_test = split_dataset(obj + subj, labels)
+    X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(obj + subj, labels)
 
-    w2id, w2id_size = make_w2id(train_set)
+    vocab = set([w for d in X_train for w in d])
+    w2id, w2id_size = make_w2id(vocab)
 
-    train_set = SubjectivityDataset(train_set, y_train, w2id)
-    val_set = SubjectivityDataset(val_set, y_val, w2id)
-    test_set = SubjectivityDataset(test_set, y_test, w2id)
+    train_set = SubjectivityDataset(X_train, y_train, w2id)
+    val_set = SubjectivityDataset(X_val, y_val, w2id)
+    test_set = SubjectivityDataset(X_test, y_test, w2id)
     
     train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
     val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
@@ -90,7 +92,6 @@ def main():
         new_best = False
 
         loss_tr, acc_tr = train(model, train_dl, optimizer)
-        
         loss_val, acc_val = evaluate(model, val_dl)
 
         if acc_val > best_val_acc:

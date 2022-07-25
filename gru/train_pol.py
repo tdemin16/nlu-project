@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 import time
@@ -11,14 +12,14 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, PAD_TOKEN, WEIGHT_DECAY
-from utils import acc, split_dataset
+from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, SAVE_PATH_GRU, WEIGHT_DECAY
+from utils import acc, collate_fn, init_weights, make, make_w2id, split_dataset
 
 
 def train(model, optimizer, train_dl):
     cum_loss = 0.
     cum_acc = 0.
-    loss_fn = torch.nn.BCELoss()
+    loss_fn = torch.nn.BCEWithLogitsLoss()
 
     model.train()
     for x, y, l in train_dl:
@@ -28,14 +29,14 @@ def train(model, optimizer, train_dl):
         y = y.to(DEVICE)
         l = l.to(DEVICE)
 
-        y_hat = model(x, l)
+        y_est = model(x, l)
 
-        loss = loss_fn(y_hat, y.unsqueeze(-1))
+        loss = loss_fn(y_est, y.unsqueeze(-1))
         loss.backward()
         optimizer.step()
 
-        cum_loss += loss
-        cum_acc += acc(y_hat, y)
+        cum_loss += loss.item()
+        cum_acc += acc(torch.sigmoid(y_est), y)
 
     return cum_loss / len(train_dl), cum_acc / len(train_dl)
 
@@ -44,7 +45,7 @@ def train(model, optimizer, train_dl):
 def evaluate(model, val_dl):
     cum_loss = 0.
     cum_acc = 0.
-    loss_fn = torch.nn.BCELoss()
+    loss_fn = torch.nn.BCEWithLogitsLoss()
 
     model.eval()
     for x, y, l in val_dl:
@@ -52,12 +53,12 @@ def evaluate(model, val_dl):
         y = y.to(DEVICE)
         l = l.to(DEVICE)
 
-        y_hat = model(x, l)
+        y_est = model(x, l)
 
-        loss = loss_fn(y_hat, y.unsqueeze(-1))
+        loss = loss_fn(y_est, y.unsqueeze(-1))
 
-        cum_loss += loss
-        cum_acc += acc(y_hat, y)
+        cum_loss += loss.item()
+        cum_acc += acc(torch.sigmoid(y_est), y)
 
     return cum_loss / len(val_dl), cum_acc / len(val_dl)
 
@@ -70,32 +71,52 @@ def main():
         neg = neg[:100]
         pos = pos[:100]
     targets = [0] * len(neg) + [1] * len(pos)
-
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(neg + pos, targets)
-
-    w2id, size_w2id = make_vocab(X_train)
+    
+    vocab = set([w for doc in X_train for sent in doc for w in sent])
+    w2id, w2id_size = make_w2id(vocab)
 
     train_set = PolarityDataset(X_train, y_train, w2id)
     val_set = PolarityDataset(X_val, y_val, w2id)
     test_set = PolarityDataset(X_test, y_test, w2id)
 
-    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
     val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
-    model = GRUAttention(num_embeddings=size_w2id).to(DEVICE)
+    model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
+    model.apply(init_weights)
+
     optimizer = Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+    best_model = None
+    best_val_acc = 0
     for i in range(EPOCHS):
         start = time.time()
+        new_best = False
 
         loss_tr, acc_tr = train(model, optimizer, train_dl)
         loss_val, acc_val = evaluate(model, val_dl)
 
-        print(f"""Epoch {i+1}
-\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}
-\tValidation Loss: {loss_val:.3f}\tValidation Acc: {acc_val:.3f}
-\tElapsed: {time.time() - start:.3f}\n""")
+        if acc_val > best_val_acc:
+            best_model = copy.deepcopy(model)
+            best_val_acc = acc_val
+            new_best = True
+
+        print(f"Epoch {i+1}")
+        print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
+        print(f"\tValidation Loss: {loss_val:.2f}\tValidation Acc: {acc_val:.2f}")
+        print(f"\tElapsed: {time.time() - start:.2f}")
+        if new_best: print("\tNew Best Model")
+        
+        print("")
+
+    loss_ts, acc_ts = evaluate(best_model, test_dl)
+    print(f"Performances on the Test Set")
+    print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
+
+    make(SAVE_PATH_GRU)
+    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "pol.pth"))
 
 if __name__ == "__main__":
     main()
