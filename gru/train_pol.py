@@ -105,6 +105,10 @@ def evaluate(model, val_dl):
 def main():
     neg = movie_reviews.paras(categories='neg')
     pos = movie_reviews.paras(categories='pos')
+    if DEVICE != "cuda":
+        # ? Dataset very big, it avoids to run everything on my laptop
+        neg = neg[:100]
+        pos = pos[:100]
     targets = [0] * len(neg) + [1] * len(pos)
 
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(neg + pos, targets)
