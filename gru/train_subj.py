@@ -81,7 +81,7 @@ def main():
     model = GRUAttention(num_embeddings=vocab_size).to(DEVICE)
     model.apply(init_weights)
     
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
     for i in range(EPOCHS):
         start = time.time()
