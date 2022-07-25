@@ -19,7 +19,7 @@ from settings import WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
 def train(model, train_dl, optimizer):
     cum_loss = 0.
     cum_acc = 0.
-    loss_fn = nn.BCELoss()
+    loss_fn = nn.BCEWithLogitsLoss()
 
     model.train()
     for x, y, l in train_dl:
@@ -36,15 +36,16 @@ def train(model, train_dl, optimizer):
         optimizer.step()
 
         cum_loss += loss.item()
-        cum_acc += acc(y_est, y)
+        cum_acc += acc(torch.sigmoid(y_est), y)
 
     return cum_loss / len(train_dl), cum_acc / len(train_dl)
 
 
 @torch.no_grad()
 def evaluate(model, val_dl):
-    cum_loss = 0
-    cum_acc = 0
+    cum_loss = 0.
+    cum_acc = 0.
+    loss_fn = nn.BCEWithLogitsLoss()
 
     model.eval()
     for x, y, l in val_dl:
@@ -53,11 +54,10 @@ def evaluate(model, val_dl):
         l = l.to(DEVICE)
         
         y_est = model(x, l)
-
-        loss = nn.BCELoss()(y_est, y.unsqueeze(-1))
+        loss = loss_fn(y_est, y.unsqueeze(-1))
 
         cum_loss += loss.item()
-        cum_acc += acc(y_est, y)
+        cum_acc += acc(torch.sigmoid(y_est), y)
 
     return cum_loss / len(val_dl), cum_acc / len(val_dl)
 
@@ -81,7 +81,7 @@ def main():
     model = GRUAttention(num_embeddings=vocab_size).to(DEVICE)
     model.apply(init_weights)
     
-    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    optimizer = optim.Adam(model.parameters(), lr=LR)
 
     for i in range(EPOCHS):
         start = time.time()

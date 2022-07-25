@@ -19,7 +19,7 @@ class AttentionBlock(nn.Module):
 
     def forward(self, x):
         return self.attention(x)
-        
+
 
 class GRUAttention(nn.Module):
     def __init__(self, num_embeddings, embedding_dim=EMBEDDING_SIZE, gru_dim=GRU_SIZE):
@@ -29,8 +29,7 @@ class GRUAttention(nn.Module):
         self.attention = AttentionBlock(gru_dim)
         self.classifier = nn.Sequential(
             nn.Linear(gru_dim, 1),
-            nn.Dropout(0.1),
-            nn.Sigmoid()
+            nn.Dropout(0.1)
         )
 
     def forward(self, x, l):

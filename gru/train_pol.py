@@ -75,7 +75,7 @@ def train(model, optimizer, train_dl):
         optimizer.step()
 
         cum_loss += loss
-        cum_acc = acc(y_hat, y)
+        cum_acc += acc(y_hat, y)
 
     return cum_loss / len(train_dl), cum_acc / len(train_dl)
 
@@ -97,7 +97,7 @@ def evaluate(model, val_dl):
         loss = loss_fn(y_hat, y.unsqueeze(-1))
 
         cum_loss += loss
-        cum_acc = acc(y_hat, y)
+        cum_acc += acc(y_hat, y)
 
     return cum_loss / len(val_dl), cum_acc / len(val_dl)
 
@@ -119,7 +119,7 @@ def main():
     val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
-    model = GRUAttention(num_embeddings=size_w2id)
+    model = GRUAttention(num_embeddings=size_w2id).to(DEVICE)
     optimizer = Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
     for i in range(EPOCHS):
