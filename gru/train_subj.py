@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 import time
@@ -83,18 +84,32 @@ def main():
     
     optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+    best_model = None
+    best_val_acc = 0
     for i in range(EPOCHS):
         start = time.time()
+        new_best = False
 
         loss_tr, acc_tr = train(model, train_dl, optimizer)
         
         loss_val, acc_val = evaluate(model, val_dl)
 
-        print(f"""Epoch {i+1}
-\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}
-\tValidation Loss: {loss_val:.3f}\tValidation Acc: {acc_val:.3f}
-\tElapsed: {time.time() - start:.3f}\n""")
+        if acc_val > best_val_acc:
+            best_model = copy.deepcopy(model)
+            best_val_acc = acc_val
+            new_best = True
 
+        print(f"Epoch {i+1}")
+        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
+        print(f"\tValidation Loss: {loss_val:.3f}\tValidation Acc: {acc_val:.3f}")
+        print(f"\tElapsed: {time.time() - start:.3f}")
+        if new_best: print("\tNew Best Model")
+        
+        print("")
+
+    loss_ts, acc_ts = evaluate(best_model, test_dl)
+    print(f"Performances on the Test Set")
+    print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
 
 if __name__ == "__main__":
     main()
