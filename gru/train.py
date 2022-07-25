@@ -17,20 +17,20 @@ from settings import WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
 
 
 def train(model, train_dl, optimizer):
-    cum_loss = 0
-    cum_acc = 0
+    cum_loss = 0.
+    cum_acc = 0.
+    loss_fn = nn.BCELoss()
 
     model.train()
     for x, y, l in train_dl:
         optimizer.zero_grad()
-
         x = x.to(DEVICE)
         y = y.to(DEVICE)
         l = l.to(DEVICE)
 
         y_est = model(x, l)
 
-        loss = nn.BCELoss()(y_est, y.unsqueeze(-1))
+        loss = loss_fn(y_est, y.unsqueeze(-1))
         
         loss.backward()
         optimizer.step()

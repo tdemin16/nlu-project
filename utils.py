@@ -50,7 +50,7 @@ def collate_fn(batch):
         merge from batch * sent_len to batch * max_len 
         '''
         lengths = [len(seq) for seq in sequences]
-        max_len = 1 if max(lengths)==0 else max(lengths)
+        max_len = 1 if max(lengths) == 0 else max(lengths)
         # Matrix full of PAD_TOKEN (i.e. 0) with the shape
         # batch_size X maximum length of a sequence
         padded_seqs = torch.LongTensor(len(sequences), max_len).fill_(PAD_TOKEN)

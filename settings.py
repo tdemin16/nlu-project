@@ -8,5 +8,6 @@ EPOCHS = 25
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LR = 10e-3
 LR_TRANSFORMER = 10e-5
-MODEL_SIZE = 256
+EMBEDDING_SIZE = 256
+GRU_SIZE = 128
 PAD_TOKEN = 0
