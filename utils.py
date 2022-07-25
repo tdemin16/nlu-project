@@ -111,7 +111,7 @@ def split_dataset(dataset, labels):
     """
 
     inter_set, test_set, inter_labels, y_test = train_test_split(dataset, labels, test_size=0.2, random_state=GENERATOR_SEED)
-    train_set, val_set, y_train, y_val = train_test_split(inter_set, inter_labels, test_size=0.2/0.8, random_state=GENERATOR_SEED) #! remove
+    train_set, val_set, y_train, y_val = train_test_split(inter_set, inter_labels, test_size=0.2/0.8)
     
     return train_set, y_train, val_set, y_val, test_set, y_test
 

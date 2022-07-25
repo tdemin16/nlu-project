@@ -27,16 +27,28 @@ class PolarityDataset(Dataset):
     0 are negative documents
     1 are positive once
     """
-    def __init__(self, data):
+    def __init__(self, X, y, w2id):
         super().__init__()
-        neg = data.paras(categories='neg')
-        pos = data.paras(categories='pos')
+        assert len(X) == len(y)
+        self.corpus = None
+        self.targets = y
         
-        self.corpus = neg + pos
-        self.labels = [0] * len(neg) + [1] * len(pos)
+        self._map(X, w2id)
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.targets)
 
     def __getitem__(self, index):
-        return self.corpus[index], self.labels[index]
+        return torch.tensor(self.corpus[index]), self.targets[index]
+
+
+    def _map(self, X, w2id):
+        self.corpus = []
+        for doc in X:
+            tmp_doc = []
+            for sent in doc:
+                for w in sent:
+                    emb = w2id[w] if w in w2id.keys() else w2id["unk"]
+                    tmp_doc.append(emb)
+
+            self.corpus.append(tmp_doc)
