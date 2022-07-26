@@ -107,14 +107,14 @@ def main():
 
         print(f"Epoch {i+1}")
         print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
-        print(f"\tValidation Loss: {loss_test:.2f}\tValidation Acc: {acc_test:.2f}")
+        print(f"\tTest Loss: {loss_test:.2f}\tTest Acc: {acc_test:.2f}")
         print(f"\tElapsed: {time.time() - start:.2f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
     loss_ts, acc_ts = evaluate(best_model, test_dl)
-    print(f"Best model performances")
+    print(f"Best weights")
     print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
 
     make(SAVE_PATH_GRU)

@@ -2,7 +2,6 @@ import os
 import torch
 
 ROOT_DIR=os.path.dirname(__file__)
-GENERATOR_SEED=0
 SAVE_PATH_BASELINE=os.path.join(ROOT_DIR, 'weights/baseline')
 SAVE_PATH_GRU=os.path.join(ROOT_DIR, 'weights/gru')
 WEIGHT_DECAY=0

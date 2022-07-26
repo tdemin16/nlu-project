@@ -7,7 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from gru.dataset import SubjectivityDataset
-from settings import DEVICE, GENERATOR_SEED, PAD_TOKEN
+from settings import DEVICE, PAD_TOKEN
 
 
 def make_w2id(vocab):
@@ -109,7 +109,7 @@ def split_dataset(dataset, labels):
     Uses GENERATOR_SEED defined in settings to keep the test set fixed across runs.
     """
 
-    train_set, test_set, y_train, y_test = train_test_split(dataset, labels, test_size=0.1, random_state=GENERATOR_SEED)
+    train_set, test_set, y_train, y_test = train_test_split(dataset, labels, test_size=0.1)
     
     return train_set, y_train, test_set, y_test
 
