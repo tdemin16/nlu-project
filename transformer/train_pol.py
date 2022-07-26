@@ -31,7 +31,7 @@ def train(model, train_dl, optimizer):
         a = a.to(DEVICE)
         y = y.type(torch.float).to(DEVICE)
 
-        y_est = model(x, a)
+        y_est = model(x, attention_mask=a).logits
 
         loss = loss_fn(y_est, y.unsqueeze(-1))
         loss.backward()
@@ -55,7 +55,7 @@ def evaluate(model, val_dl):
         a = a.to(DEVICE)
         y = y.type(torch.float).to(DEVICE)
         
-        y_est = model(x, a)
+        y_est = model(x, attention_mask=a).logits
 
         loss = loss_fn(y_est, y.unsqueeze(-1))
 
@@ -77,8 +77,7 @@ def main():
 
     if FILTER:
         subj_det = AutoModelForSequenceClassification.from_pretrained(
-            os.path.join(SAVE_PATH_TRANSFORMER, "subj.pth"),
-            ignore_mismatched_size=True
+            os.path.join(SAVE_PATH_TRANSFORMER, "subj"),
         ).to(DEVICE)
         subj_det.eval()
 
@@ -141,7 +140,7 @@ def main():
 
     if SAVE:
         make(SAVE_PATH_TRANSFORMER)
-        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "pol.pth"))
+        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "pol"))
         print("Weights saved")
 
 

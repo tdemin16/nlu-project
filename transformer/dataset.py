@@ -36,7 +36,13 @@ class PolarityDataset(Dataset):
     def __init__(self, data, targets):
         super().__init__()
         tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
-        encoding = tokenizer([self._lol2str(d) for d in data], return_tensors="pt", padding=True)
+        encoding = tokenizer(
+            [self._lol2str(d) for d in data], 
+            return_tensors="pt", 
+            padding=True,
+            truncation=True,
+            max_length=512
+        )
         self.corpus = encoding['input_ids']
         self.att_mask = encoding['attention_mask']
         self.labels = targets

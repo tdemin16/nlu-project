@@ -112,7 +112,7 @@ def remove_objective_sents_transformer(classifier, document):
     x.to(DEVICE)
     a.to(DEVICE)
 
-    est_subj = torch.sigmoid(classifier(x, a))
+    est_subj = torch.sigmoid(classifier(x, a).logits)
     est_subj = torch.round(est_subj).cpu().detach()
     filt_doc = [s for s, est in zip(document, est_subj) if est == 1]
     return filt_doc

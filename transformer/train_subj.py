@@ -119,7 +119,7 @@ def main():
 
     if SAVE:
         make(SAVE_PATH_TRANSFORMER)
-        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "subj.pth"))
+        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "subj"))
         print("Weights saved")
 
 
