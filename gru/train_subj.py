@@ -75,17 +75,15 @@ def main():
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
 
     labels = [0] * len(obj) + [1] * len(subj)
-    X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(obj + subj, labels)
+    X_train, y_train, X_test, y_test = split_dataset(obj + subj, labels)
 
     vocab = set([w for d in X_train for w in d])
     w2id, w2id_size = make_w2id(vocab)
 
     train_set = SubjectivityDataset(X_train, y_train, w2id)
-    val_set = SubjectivityDataset(X_val, y_val, w2id)
     test_set = SubjectivityDataset(X_test, y_test, w2id)
     
     train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_GRU_SUBJ, collate_fn=collate_fn, shuffle=True, num_workers=2)
-    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE_GRU_SUBJ, collate_fn=collate_fn)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_GRU_SUBJ   , collate_fn=collate_fn)
 
     model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
@@ -94,29 +92,29 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
     best_model = None
-    best_val_acc = 0
+    best_test_acc = 0
     for i in range(EPOCHS):
         start = time.time()
         new_best = False
 
         loss_tr, acc_tr = train(model, train_dl, optimizer)
-        loss_val, acc_val = evaluate(model, val_dl)
+        loss_test, acc_test = evaluate(model, test_dl)
 
-        if acc_val > best_val_acc:
+        if acc_test > best_test_acc:
             best_model = copy.deepcopy(model)
-            best_val_acc = acc_val
+            best_test_acc = acc_test
             new_best = True
 
         print(f"Epoch {i+1}")
         print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
-        print(f"\tValidation Loss: {loss_val:.2f}\tValidation Acc: {acc_val:.2f}")
+        print(f"\tValidation Loss: {loss_test:.2f}\tValidation Acc: {acc_test:.2f}")
         print(f"\tElapsed: {time.time() - start:.2f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
     loss_ts, acc_ts = evaluate(best_model, test_dl)
-    print(f"Performances on the Test Set")
+    print(f"Best model performances")
     print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
 
     make(SAVE_PATH_GRU)
