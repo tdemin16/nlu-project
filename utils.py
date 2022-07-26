@@ -92,7 +92,7 @@ def remove_objective_sents_nn(classifier, w2id, document):
     x = x.to(DEVICE)
     l = l.to(DEVICE)
 
-    est_subj = classifier(x, l)
+    est_subj = torch.sigmoid(classifier(x, l))
     est_subj = torch.round(est_subj).cpu().detach()
     filt_doc = [s for s, est in zip(document, est_subj) if est == 1]
     return filt_doc

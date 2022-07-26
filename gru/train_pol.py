@@ -83,6 +83,7 @@ def main():
         subj_det.load_state_dict(torch.load(
             os.path.join(SAVE_PATH_GRU, 'subj_cls.pth'), map_location=DEVICE)
         )
+        subj_det.to(DEVICE)
         subj_det.eval()
 
         filt_neg = []
