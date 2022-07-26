@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE, DEVICE, EPOCHS, LR, SAVE_PATH_GRU, WEIGHT_DECAY
+from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, LR, SAVE_PATH_GRU, WEIGHT_DECAY
 from utils import acc, collate_fn, init_weights, make, make_w2id, split_dataset
 
 
@@ -67,9 +67,12 @@ def main():
     neg = movie_reviews.paras(categories='neg')
     pos = movie_reviews.paras(categories='pos')
     if DEVICE != "cuda":
-        # ? Dataset very big, it avoids to run everything on my laptop
-        neg = neg[:100]
-        pos = pos[:100]
+        # ? Reduces the size of the dataset when running on CPU.
+        # ? Less comuputational requirements during test
+        neg = neg[:20]
+        pos = pos[:20]
+        print("[Warning] Cuda not detected, a subset of the dataset will be used.")
+    
     targets = [0] * len(neg) + [1] * len(pos)
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(neg + pos, targets)
     
@@ -80,9 +83,9 @@ def main():
     val_set = PolarityDataset(X_val, y_val, w2id)
     test_set = PolarityDataset(X_test, y_test, w2id)
 
-    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
-    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
-    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_GRU_POL, collate_fn=collate_fn, shuffle=True, num_workers=2)
+    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE_GRU_POL, collate_fn=collate_fn)
+    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_GRU_POL, collate_fn=collate_fn)
 
     model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)

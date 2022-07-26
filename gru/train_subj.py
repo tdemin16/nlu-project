@@ -1,5 +1,6 @@
 import copy
 import os
+import pickle
 import sys
 import time
 import torch
@@ -13,7 +14,7 @@ from torch.utils.data import DataLoader
 from dataset import SubjectivityDataset
 from model import GRUAttention
 from utils import acc, collate_fn, make, make_w2id, split_dataset, init_weights
-from settings import SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE, EPOCHS, DEVICE, LR
+from settings import SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE_GRU_SUBJ, EPOCHS, DEVICE, LR
 
 
 def train(model, train_dl, optimizer):
@@ -66,6 +67,13 @@ def evaluate(model, val_dl):
 def main():
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
+    if DEVICE != "cuda":
+        # ? Reduces the size of the dataset when running on CPU.
+        # ? Less comuputational requirements during test
+        obj = obj[:20]
+        subj = subj[:20]
+        print("[Warning] Cuda not detected, a subset of the dataset will be used.")
+
     labels = [0] * len(obj) + [1] * len(subj)
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(obj + subj, labels)
 
@@ -76,9 +84,9 @@ def main():
     val_set = SubjectivityDataset(X_val, y_val, w2id)
     test_set = SubjectivityDataset(X_test, y_test, w2id)
     
-    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_fn, shuffle=True, num_workers=2)
-    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
-    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_fn)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_GRU_SUBJ, collate_fn=collate_fn, shuffle=True, num_workers=2)
+    val_dl = DataLoader(val_set, batch_size=BATCH_SIZE_GRU_SUBJ, collate_fn=collate_fn)
+    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_GRU_SUBJ   , collate_fn=collate_fn)
 
     model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)
@@ -112,7 +120,9 @@ def main():
     print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
 
     make(SAVE_PATH_GRU)
-    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj.pth"))
+    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj_cls.pth"))
+    with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pth"), 'wb') as f:
+        pickle.dump(w2id, f)
 
 if __name__ == "__main__":
     main()

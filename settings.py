@@ -1,10 +1,13 @@
+import os
 import torch
 
+ROOT_DIR=os.path.dirname(__file__)
 GENERATOR_SEED=0
-SAVE_PATH_BASELINE='weights/baseline'
-SAVE_PATH_GRU='weights/gru'
+SAVE_PATH_BASELINE=os.path.join(ROOT_DIR, 'weights/baseline')
+SAVE_PATH_GRU=os.path.join(ROOT_DIR, 'weights/gru')
 WEIGHT_DECAY=0
-BATCH_SIZE=4096
+BATCH_SIZE_GRU_SUBJ=4096
+BATCH_SIZE_GRU_POL=512
 EPOCHS=50
 DEVICE="cuda" if torch.cuda.is_available() else "cpu"
 LR=10e-3
