@@ -28,7 +28,7 @@ class GRUAttention(nn.Module):
             self.attention = AttentionBlock(gru_dim*2)
         self.classifier = nn.Sequential(
             nn.Dropout(0.3),
-            nn.Linear(gru_dim*4, 1)
+            nn.Linear(gru_dim*2, 1)
         )
 
     def forward(self, x, l):
@@ -40,7 +40,7 @@ class GRUAttention(nn.Module):
 
         if self.attention is not None:
             alpha = alpha * self.attention(alpha)
-        context_vector = torch.cat((alpha.sum(dim=1), alpha.max(dim=1)[0]), dim=-1)
+        context_vector = alpha.sum(dim=1)
 
         y_est = self.classifier(context_vector)
         return y_est
