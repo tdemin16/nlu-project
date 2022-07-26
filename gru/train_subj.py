@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from dataset import SubjectivityDataset
 from model import GRUAttention
 from utils import acc, collate_fn, make, make_w2id, split_dataset, init_weights
-from settings import SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE_GRU_SUBJ, EPOCHS, DEVICE, LR
+from settings import SAVE, SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE_GRU_SUBJ, EPOCHS, DEVICE, LR
 
 
 def train(model, train_dl, optimizer):
@@ -106,21 +106,23 @@ def main():
             new_best = True
 
         print(f"Epoch {i+1}")
-        print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
-        print(f"\tTest Loss: {loss_test:.2f}\tTest Acc: {acc_test:.2f}")
-        print(f"\tElapsed: {time.time() - start:.2f}")
+        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
+        print(f"\tTest Loss: {loss_test:.3f}\tTest Acc: {acc_test:.3f}")
+        print(f"\tElapsed: {time.time() - start:.3f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
     loss_ts, acc_ts = evaluate(best_model, test_dl)
     print(f"Best weights")
-    print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
+    print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
 
-    make(SAVE_PATH_GRU)
-    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj_cls.pth"))
-    with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pkl"), 'wb') as f:
-        pickle.dump(w2id, f)
+    if SAVE:
+        make(SAVE_PATH_GRU)
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj_cls.pth"))
+        with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pkl"), 'wb') as f:
+            pickle.dump(w2id, f)
+        print("Weights saved")
 
 if __name__ == "__main__":
     main()

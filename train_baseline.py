@@ -74,10 +74,10 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
 
 def main():
     subj_scores, subj_classifier, subj_vectorizer = train_subjectivity_classifier()
-    print(f"Naive Bayes F1 score on subjectivity classification:\n\tAverage: {subj_scores.mean():.2f}\n\tSTD: {subj_scores.std():.2f}")
+    print(f"Naive Bayes F1 score on subjectivity classification:\n\tAverage: {subj_scores.mean():.3f}\n\tSTD: {subj_scores.std():.3f}")
 
     pol_scores, pol_classifier, pol_vectorizer = train_polarity_classifier(subj_classifier, subj_vectorizer)
-    print(f"Naive Bayes F1 score on polarity classification:\n\tAverage: {pol_scores.mean():.2f}\n\tSTD: {pol_scores.std():.2f}")
+    print(f"Naive Bayes F1 score on polarity classification:\n\tAverage: {pol_scores.mean():.3f}\n\tSTD: {pol_scores.std():.3f}")
 
     make(SAVE_PATH_BASELINE)
     joblib.dump(subj_classifier, os.path.join(SAVE_PATH_BASELINE, 'subj_cls.joblib'))

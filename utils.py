@@ -6,8 +6,9 @@ from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader
 
-from gru.dataset import SubjectivityDataset
+from gru import dataset as gru_ds
 from settings import DEVICE, PAD_TOKEN
+from transformer import dataset as trans_ds
 
 
 def make_w2id(vocab):
@@ -84,7 +85,7 @@ def remove_objective_sents_nn(classifier, w2id, document):
     """
     Remove the objective sentences from a document and returns the filtered document.
     """
-    ds = SubjectivityDataset(document, [0]*len(document), w2id)
+    ds = gru_ds.SubjectivityDataset(document, [0]*len(document), w2id)
     dl = DataLoader(ds, batch_size=len(document), shuffle=False, collate_fn=collate_fn)
     it = dl.__iter__()
     x, y, l = it.__next__()
@@ -93,6 +94,25 @@ def remove_objective_sents_nn(classifier, w2id, document):
     l = l.to(DEVICE)
 
     est_subj = torch.sigmoid(classifier(x, l))
+    est_subj = torch.round(est_subj).cpu().detach()
+    filt_doc = [s for s, est in zip(document, est_subj) if est == 1]
+    return filt_doc
+
+
+@torch.no_grad()
+def remove_objective_sents_transformer(classifier, document):
+    """
+    Remove the objective sentences from a document and returns the filtered document.
+    """
+    ds = trans_ds.SubjectivityDataset(document, [0]*len(document))
+    dl = DataLoader(ds, batch_size=len(document), shuffle=False)
+    it = dl.__iter__()
+    x, a, y = it.__next__()
+
+    x.to(DEVICE)
+    a.to(DEVICE)
+
+    est_subj = torch.sigmoid(classifier(x, a))
     est_subj = torch.round(est_subj).cpu().detach()
     filt_doc = [s for s, est in zip(document, est_subj) if est == 1]
     return filt_doc

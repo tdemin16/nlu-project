@@ -1,4 +1,7 @@
-import torch
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
@@ -30,16 +33,28 @@ class PolarityDataset(Dataset):
     1 are positive once
     """
     # cardiffnlp/twitter-xlm-roberta-base-sentiment
-    def __init__(self, data):
+    def __init__(self, data, targets):
         super().__init__()
-        neg = data.paras(categories='neg')
-        pos = data.paras(categories='pos')
-        
-        self.corpus = neg + pos
-        self.labels = [0] * len(neg) + [1] * len(pos)
+        tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
+        encoding = tokenizer([self._lol2str(d) for d in data], return_tensors="pt", padding=True)
+        self.corpus = encoding['input_ids']
+        self.att_mask = encoding['attention_mask']
+        self.labels = targets
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, index):
-        return self.corpus[index], self.labels[index]
+        return self.corpus[index], self.att_mask[index], self.labels[index]
+
+    def _list2str(self, l):
+        """
+        Returns a string from a list
+        """
+        return ' '.join(w for w in l)
+
+    def _lol2str(self, lol):
+        """
+        Returns a string from a list of lists
+        """
+        return ' '.join(self._list2str(l) for l in lol)

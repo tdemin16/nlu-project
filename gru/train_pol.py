@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, FILTER, LR, SAVE_PATH_GRU, WEIGHT_DECAY
+from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, FILTER, LR, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
 from utils import acc, collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
 
 
@@ -73,8 +73,6 @@ def main():
         neg = neg[:20]
         pos = pos[:20]
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
-    
-    targets = [0] * len(neg) + [1] * len(pos)
 
     if FILTER:
         with open(os.path.join(SAVE_PATH_GRU, 'subj_w2id.pkl'), 'rb') as f:
@@ -100,8 +98,8 @@ def main():
 
         neg = filt_neg
         pos = filt_pos
-        targets = [0] * len(filt_neg) + [1] * len(filt_pos)
-
+    
+    targets = [0] * len(neg) + [1] * len(pos)
     X_train, y_train, X_test, y_test = split_dataset(neg + pos, targets)
     
     vocab = set([w for doc in X_train for sent in doc for w in sent])
@@ -133,19 +131,23 @@ def main():
             new_best = True
 
         print(f"Epoch {i+1}")
-        print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
-        print(f"\tTest Loss: {loss_test:.2f}\tTest Acc: {acc_test:.2f}")
-        print(f"\tElapsed: {time.time() - start:.2f}")
+        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
+        print(f"\tTest Loss: {loss_test:.3f}\tTest Acc: {acc_test:.3f}")
+        print(f"\tElapsed: {time.time() - start:.3f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
     loss_ts, acc_ts = evaluate(best_model, test_dl)
     print(f"Best weights:")
-    print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
+    print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
 
-    make(SAVE_PATH_GRU)
-    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "pol.pth"))
+    if SAVE:
+        make(SAVE_PATH_GRU)
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "pol_cls.pth"))
+        with open(os.path.join(SAVE_PATH_GRU, "pol_w2id.pkl"), 'wb') as f:
+            pickle.dump(w2id, f)
+        print("Weights saved")
 
 if __name__ == "__main__":
     main()

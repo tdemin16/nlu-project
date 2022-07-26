@@ -11,10 +11,10 @@ from nltk.corpus import subjectivity
 from torch import nn
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
+from transformers import AutoModelForSequenceClassification
 
 from dataset import SubjectivityDataset
-from model import Transformer
-from settings import BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS, LR_TRANSFORMER, SAVE_PATH_TRANSFORMER
+from settings import BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS_TRANSFORMER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
 from utils import split_dataset, acc, make
 
 
@@ -31,7 +31,7 @@ def train(model, train_dl, optimizer):
         a = a.to(DEVICE)
         y = y.type(torch.float).to(DEVICE)
 
-        y_est = model(x, a)
+        y_est = model(x, attention_mask=a).logits
 
         loss = loss_fn(y_est, y.unsqueeze(-1))
         loss.backward()
@@ -55,7 +55,7 @@ def evaluate(model, val_dl):
         a = a.to(DEVICE)
         y = y.type(torch.float).to(DEVICE)
         
-        y_est = model(x, a)
+        y_est = model(x, attention_mask=a).logits
 
         loss = loss_fn(y_est, y.unsqueeze(-1))
 
@@ -84,12 +84,16 @@ def main():
     train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_TRANSFORMER_SUBJ, shuffle=True)
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_TRANSFORMER_SUBJ)
 
-    model = Transformer().to(DEVICE)
+    model = AutoModelForSequenceClassification.from_pretrained(
+                "cffl/bert-base-styleclassification-subjective-neutral", 
+                num_labels=1,
+                ignore_mismatched_sizes=True
+            ).to(DEVICE)
     optimizer = AdamW(model.parameters(), lr=LR_TRANSFORMER)
 
     best_model = None
     best_test_acc = 0
-    for i in range(EPOCHS):
+    for i in range(EPOCHS_TRANSFORMER):
         start = time.time()
         new_best = False
 
@@ -102,19 +106,21 @@ def main():
             new_best = True
 
         print(f"Epoch {i+1}")
-        print(f"\tTrain Loss: {loss_tr:.2f}\tTrain Acc: {acc_tr:.2f}")
-        print(f"\tTest Loss: {loss_test:.2f}\tTest Acc: {acc_test:.2f}")
-        print(f"\tElapsed: {time.time() - start:.2f}")
+        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
+        print(f"\tTest Loss: {loss_test:.3f}\tTest Acc: {acc_test:.3f}")
+        print(f"\tElapsed: {time.time() - start:.3f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
     loss_ts, acc_ts = evaluate(best_model, test_dl)
     print(f"Best weights")
-    print(f"Loss: {loss_ts:.2f} - Acc: {acc_ts:.2f}")
+    print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
 
-    make(SAVE_PATH_TRANSFORMER)
-    torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_TRANSFORMER, "subj.pth"))
+    if SAVE:
+        make(SAVE_PATH_TRANSFORMER)
+        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "subj.pth"))
+        print("Weights saved")
 
 
 if __name__ == "__main__":
