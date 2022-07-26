@@ -1,12 +1,13 @@
-from collections import Counter
 import os
 import torch
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from torch import nn
+from torch.utils.data import DataLoader
 
-from settings import GENERATOR_SEED, PAD_TOKEN
+from gru.dataset import SubjectivityDataset
+from settings import DEVICE, GENERATOR_SEED, PAD_TOKEN
 
 
 def make_w2id(vocab):
@@ -75,6 +76,25 @@ def remove_objective_sents(classifier, vectorizer, document):
     estimated_subj = classifier.predict(vectors)
     filt_sent = [d for d, est in zip(document, estimated_subj) if est == 1]
     filt_doc = list2str(filt_sent)
+    return filt_doc
+
+
+@torch.no_grad()
+def remove_objective_sents_nn(classifier, w2id, document):
+    """
+    Remove the objective sentences from a document and returns the filtered document.
+    """
+    ds = SubjectivityDataset(document, [0]*len(document), w2id)
+    dl = DataLoader(ds, batch_size=len(document), shuffle=False, collate_fn=collate_fn)
+    it = dl.__iter__()
+    x, y, l = it.__next__()
+
+    x = x.to(DEVICE)
+    l = l.to(DEVICE)
+
+    est_subj = classifier(x, l)
+    est_subj = torch.round(est_subj).cpu().detach()
+    filt_doc = [s for s, est in zip(document, est_subj) if est == 1]
     return filt_doc
 
 

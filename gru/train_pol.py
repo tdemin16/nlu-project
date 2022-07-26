@@ -1,5 +1,6 @@
 import copy
 import os
+import pickle
 import sys
 import time
 import torch
@@ -12,8 +13,8 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, LR, SAVE_PATH_GRU, WEIGHT_DECAY
-from utils import acc, collate_fn, init_weights, make, make_w2id, split_dataset
+from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, FILTER, LR, SAVE_PATH_GRU, WEIGHT_DECAY
+from utils import acc, collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
 
 
 def train(model, optimizer, train_dl):
@@ -74,6 +75,32 @@ def main():
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
     
     targets = [0] * len(neg) + [1] * len(pos)
+
+    if FILTER:
+        with open(os.path.join(SAVE_PATH_GRU, 'subj_w2id.pkl'), 'rb') as f:
+            subj_w2id = pickle.load(f)
+        subj_det = GRUAttention(num_embeddings=len(subj_w2id.keys()))
+        subj_det.load_state_dict(torch.load(
+            os.path.join(SAVE_PATH_GRU, 'subj_cls.pth'), map_location=DEVICE)
+        )
+        subj_det.eval()
+
+        filt_neg = []
+        for doc in neg:
+            filt_doc = remove_objective_sents_nn(subj_det, subj_w2id, doc)
+            if len(filt_doc) > 0:
+                filt_neg.append(filt_doc)
+
+        filt_pos = []
+        for doc in pos:
+            filt_doc = remove_objective_sents_nn(subj_det, subj_w2id, doc)
+            if len(filt_doc) > 0:
+                filt_pos.append(filt_doc)
+
+        neg = filt_neg
+        pos = filt_pos
+        targets = [0] * len(filt_neg) + [1] * len(filt_pos)
+
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(neg + pos, targets)
     
     vocab = set([w for doc in X_train for sent in doc for w in sent])

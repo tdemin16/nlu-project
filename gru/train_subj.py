@@ -121,7 +121,7 @@ def main():
 
     make(SAVE_PATH_GRU)
     torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj_cls.pth"))
-    with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pth"), 'wb') as f:
+    with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pkl"), 'wb') as f:
         pickle.dump(w2id, f)
 
 if __name__ == "__main__":
