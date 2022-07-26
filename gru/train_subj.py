@@ -68,8 +68,8 @@ def main():
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
     if DEVICE != "cuda":
-        # ? Reduces the size of the dataset when running on CPU.
-        # ? Less comuputational requirements during test
+        #? Reduces the size of the dataset when running on CPU.
+        #? Less comuputational requirements during test
         obj = obj[:20]
         subj = subj[:20]
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
