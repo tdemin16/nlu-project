@@ -29,14 +29,14 @@ class SubjectivityDataset(Dataset):
 
 class PolarityDataset(Dataset):
     """
-    0 are negative documents
-    1 are positive once
+    0 are negative reviews
+    1 are positive ones
     """
     # cardiffnlp/twitter-xlm-roberta-base-sentiment
     # cmarkea/distilcamembert-base-sentiment
     def __init__(self, data, targets):
         super().__init__()
-        tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
+        tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
         encoding = tokenizer(
             [self._lol2str(d) for d in data], 
             return_tensors="pt", 

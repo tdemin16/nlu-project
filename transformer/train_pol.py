@@ -100,7 +100,7 @@ def main():
     test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_TRANSFORMER_POL)
 
     model = AutoModelForSequenceClassification.from_pretrained(
-            "cardiffnlp/twitter-xlm-roberta-base-sentiment",
+            "cardiffnlp/twitter-roberta-base-sentiment",
             num_labels=1,
             ignore_mismatched_sizes=True
         ).to(DEVICE)
