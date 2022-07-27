@@ -11,6 +11,12 @@ from settings import DEVICE, PAD_TOKEN
 from transformer import dataset as trans_ds
 
 
+class FilteredData:
+    def __init__(self, neg, pos):
+        self.neg = neg
+        self.pos = pos
+
+
 def make_w2id(vocab):
     """
     Return a mapping word to integer.
@@ -111,7 +117,7 @@ def remove_objective_sents_transformer(classifier, document):
 
     x = x.to(DEVICE)
     a = a.to(DEVICE)
-    
+
     est_subj = torch.sigmoid(classifier(x, a).logits)
     est_subj = torch.round(est_subj).cpu().detach()
     filt_doc = [s for s, est in zip(document, est_subj) if est == 1]

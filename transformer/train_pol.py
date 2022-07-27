@@ -1,5 +1,6 @@
 import copy
 import os
+import pickle
 import sys
 import time
 import torch
@@ -14,8 +15,8 @@ from transformers import AutoModelForSequenceClassification
 from tqdm.auto import tqdm
 
 from dataset import PolarityDataset
-from settings import BATCH_SIZE_TRANSFORMER_POL, BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS_TRANSFORMER, FILTER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
-from utils import remove_objective_sents_transformer, split_dataset, acc, make
+from settings import BATCH_SIZE_TRANSFORMER_POL, DEVICE, EPOCHS_TRANSFORMER, FILTER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
+from utils import FilteredData, split_dataset, acc, make
 
 
 def train(model, train_dl, optimizer):
@@ -66,35 +67,28 @@ def evaluate(model, val_dl):
 
 
 def main():
-    neg = movie_reviews.paras(categories='neg')
-    pos = movie_reviews.paras(categories='pos')
+    if FILTER:
+        path = os.path.join(SAVE_PATH_TRANSFORMER, "filt_data.pkl")
+        if not os.path.exists(path):
+            print("[ERROR] No filtered data found!\nUse {os.path.join(ROOT_DIR, 'transformer', 'filter_sents.py')} to filter it.")
+            exit(1)
+        
+        with open(path, "rb") as fp:
+            filt_data = pickle.load(fp)
+
+        neg = filt_data.neg
+        pos = filt_data.pos
+    
+    else:
+        neg = movie_reviews.paras(categories='neg')
+        pos = movie_reviews.paras(categories='pos')
+
     if DEVICE != "cuda":
         #? Reduces the size of the dataset when running on CPU.
         #? Less comuputational requirements during test
         neg = neg[:10]
         pos = pos[:10]
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
-
-    if FILTER:
-        subj_det = AutoModelForSequenceClassification.from_pretrained(
-            os.path.join(SAVE_PATH_TRANSFORMER, "subj"),
-        ).to(DEVICE)
-        subj_det.eval()
-
-        filt_neg = []
-        for doc in tqdm(neg, desc="neg", leave=False):
-            filt_doc = remove_objective_sents_transformer(subj_det, doc)
-            if len(filt_doc) > 0:
-                filt_neg.append(filt_doc)
-
-        filt_pos = []
-        for doc in tqdm(pos, desc="pos", leave=False):
-            filt_doc = remove_objective_sents_transformer(subj_det, doc)
-            if len(filt_doc) > 0:
-                filt_pos.append(filt_doc)
-
-        neg = filt_neg
-        pos = filt_pos
     
     targets = [0] * len(neg) + [1] * len(pos)
     train_set, y_train, test_set, y_test = split_dataset(neg + pos, targets)
