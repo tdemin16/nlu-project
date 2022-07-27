@@ -33,6 +33,7 @@ class PolarityDataset(Dataset):
     1 are positive once
     """
     # cardiffnlp/twitter-xlm-roberta-base-sentiment
+    # cmarkea/distilcamembert-base-sentiment
     def __init__(self, data, targets):
         super().__init__()
         tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-xlm-roberta-base-sentiment")
