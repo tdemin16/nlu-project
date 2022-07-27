@@ -14,7 +14,7 @@ from transformers import AutoModelForSequenceClassification
 from tqdm.auto import tqdm
 
 from dataset import PolarityDataset
-from settings import BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS_TRANSFORMER, FILTER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
+from settings import BATCH_SIZE_TRANSFORMER_POL, BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS_TRANSFORMER, FILTER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
 from utils import remove_objective_sents_transformer, split_dataset, acc, make
 
 
@@ -102,8 +102,8 @@ def main():
     train_set = PolarityDataset(train_set, y_train)
     test_set = PolarityDataset(test_set, y_test)
 
-    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_TRANSFORMER_SUBJ, shuffle=True)
-    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_TRANSFORMER_SUBJ)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_TRANSFORMER_POL, shuffle=True)
+    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_TRANSFORMER_POL)
 
     model = AutoModelForSequenceClassification.from_pretrained(
             "cardiffnlp/twitter-xlm-roberta-base-sentiment",
