@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import torch
-from tqdm.auto import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -12,6 +11,7 @@ from torch import nn
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from transformers import AutoModelForSequenceClassification
+from tqdm.auto import tqdm
 
 from dataset import PolarityDataset
 from settings import BATCH_SIZE_TRANSFORMER_SUBJ, DEVICE, EPOCHS_TRANSFORMER, FILTER, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
@@ -82,13 +82,13 @@ def main():
         subj_det.eval()
 
         filt_neg = []
-        for doc in neg:
+        for doc in tqdm(neg, desc="neg", leave=False):
             filt_doc = remove_objective_sents_transformer(subj_det, doc)
             if len(filt_doc) > 0:
                 filt_neg.append(filt_doc)
 
         filt_pos = []
-        for doc in pos:
+        for doc in tqdm(pos, desc="pos", leave=False):
             filt_doc = remove_objective_sents_transformer(subj_det, doc)
             if len(filt_doc) > 0:
                 filt_pos.append(filt_doc)
