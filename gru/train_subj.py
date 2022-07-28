@@ -71,10 +71,11 @@ def main():
     print(f"Best weights")
     print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
 
-    if SAVE:
+    if not SAVE:
         make(SAVE_PATH_GRU)
-        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "subj_cls.pth"))
-        with open(os.path.join(SAVE_PATH_GRU, "subj_w2id.pkl"), 'wb') as f:
+        acc = str(acc_ts).split('.')[-1]
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, f"subj_cls_{acc}.pth"))
+        with open(os.path.join(SAVE_PATH_GRU, f"subj_w2id_{acc}.pkl"), 'wb') as f:
             pickle.dump(w2id, f)
         print("Weights saved")
 

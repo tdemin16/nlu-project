@@ -87,7 +87,8 @@ def main():
 
     if SAVE:
         make(SAVE_PATH_TRANSFORMER)
-        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, "pol"))
+        acc = str(acc_ts).split('.')[-1]
+        best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, f"pol_{acc}"))
         print("Weights saved")
 
 

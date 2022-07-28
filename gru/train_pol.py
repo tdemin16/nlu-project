@@ -98,8 +98,9 @@ def main():
 
     if SAVE:
         make(SAVE_PATH_GRU)
-        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "pol_cls.pth"))
-        with open(os.path.join(SAVE_PATH_GRU, "pol_w2id.pkl"), 'wb') as f:
+        acc = str(acc_ts).split('.')[-1]
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, f"pol_cls_{acc}.pth"))
+        with open(os.path.join(SAVE_PATH_GRU, f"pol_w2id_{acc}.pkl"), 'wb') as f:
             pickle.dump(w2id, f)
         print("Weights saved")
 
