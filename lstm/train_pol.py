@@ -12,8 +12,8 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
-from model import GRUAttention
-from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS_GRU, FILTER, LR_GRU, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
+from model import LSTMAttention
+from settings import BATCH_SIZE_LSTM_POL, DEVICE, EPOCHS_LSTM, FILTER, LR_LSTM, SAVE, SAVE_PATH_LSTM, WEIGHT_DECAY
 from train_utils import evaluate, train
 from utils import collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
 
@@ -29,11 +29,11 @@ def main():
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
 
     if FILTER:
-        with open(os.path.join(SAVE_PATH_GRU, 'subj_w2id.pkl'), 'rb') as f:
+        with open(os.path.join(SAVE_PATH_LSTM, 'subj_w2id.pkl'), 'rb') as f:
             subj_w2id = pickle.load(f)
-        subj_det = GRUAttention(num_embeddings=len(subj_w2id.keys()))
+        subj_det = LSTMAttention(num_embeddings=len(subj_w2id.keys()))
         subj_det.load_state_dict(torch.load(
-            os.path.join(SAVE_PATH_GRU, 'subj_cls.pth'), map_location=DEVICE)
+            os.path.join(SAVE_PATH_LSTM, 'subj_cls.pth'), map_location=DEVICE)
         )
         subj_det.to(DEVICE)
         subj_det.eval()
@@ -62,17 +62,17 @@ def main():
     train_set = PolarityDataset(X_train, y_train, w2id)
     test_set = PolarityDataset(X_test, y_test, w2id)
 
-    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_GRU_POL, collate_fn=collate_fn, shuffle=True, num_workers=2)
-    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_GRU_POL, collate_fn=collate_fn)
+    train_dl = DataLoader(train_set, batch_size=BATCH_SIZE_LSTM_POL, collate_fn=collate_fn, shuffle=True, num_workers=2)
+    test_dl = DataLoader(test_set, batch_size=BATCH_SIZE_LSTM_POL, collate_fn=collate_fn)
 
-    model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
+    model = LSTMAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)
 
-    optimizer = Adam(model.parameters(), lr=LR_GRU, weight_decay=WEIGHT_DECAY)
+    optimizer = Adam(model.parameters(), lr=LR_LSTM, weight_decay=WEIGHT_DECAY)
 
     best_model = None
     best_test_acc = 0
-    for i in range(EPOCHS_GRU):
+    for i in range(EPOCHS_LSTM):
         start = time.time()
         new_best = False
 
@@ -97,9 +97,9 @@ def main():
     print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
 
     if SAVE:
-        make(SAVE_PATH_GRU)
-        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, "pol_cls.pth"))
-        with open(os.path.join(SAVE_PATH_GRU, "pol_w2id.pkl"), 'wb') as f:
+        make(SAVE_PATH_LSTM)
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_LSTM, "pol_cls.pth"))
+        with open(os.path.join(SAVE_PATH_LSTM, "pol_w2id.pkl"), 'wb') as f:
             pickle.dump(w2id, f)
         print("Weights saved")
 
