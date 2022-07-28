@@ -13,55 +13,9 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS, FILTER, LR, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
-from utils import acc, collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
-
-
-def train(model, optimizer, train_dl):
-    cum_loss = 0.
-    cum_acc = 0.
-    loss_fn = torch.nn.BCEWithLogitsLoss()
-
-    model.train()
-    for x, y, l in train_dl:
-        optimizer.zero_grad()
-
-        x = x.to(DEVICE)
-        y = y.to(DEVICE)
-        l = l.to(DEVICE)
-
-        y_est = model(x, l)
-
-        loss = loss_fn(y_est, y.unsqueeze(-1))
-        loss.backward()
-        optimizer.step()
-
-        cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
-
-    return cum_loss / len(train_dl), cum_acc / len(train_dl)
-
-
-@torch.no_grad()
-def evaluate(model, val_dl):
-    cum_loss = 0.
-    cum_acc = 0.
-    loss_fn = torch.nn.BCEWithLogitsLoss()
-
-    model.eval()
-    for x, y, l in val_dl:
-        x = x.to(DEVICE)
-        y = y.to(DEVICE)
-        l = l.to(DEVICE)
-
-        y_est = model(x, l)
-
-        loss = loss_fn(y_est, y.unsqueeze(-1))
-
-        cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
-
-    return cum_loss / len(val_dl), cum_acc / len(val_dl)
+from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS_GRU, FILTER, LR_GRU, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
+from train_utils import evaluate, train
+from utils import collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
 
 
 def main():
@@ -114,11 +68,11 @@ def main():
     model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)
 
-    optimizer = Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    optimizer = Adam(model.parameters(), lr=LR_GRU, weight_decay=WEIGHT_DECAY)
 
     best_model = None
     best_test_acc = 0
-    for i in range(EPOCHS):
+    for i in range(EPOCHS_GRU):
         start = time.time()
         new_best = False
 

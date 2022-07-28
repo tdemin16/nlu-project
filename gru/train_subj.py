@@ -8,60 +8,14 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from nltk.corpus import subjectivity
-from torch import optim, nn
+from torch import optim
 from torch.utils.data import DataLoader
 
 from dataset import SubjectivityDataset
 from model import GRUAttention
-from utils import acc, collate_fn, make, make_w2id, split_dataset, init_weights
-from settings import SAVE, SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE_GRU_SUBJ, EPOCHS, DEVICE, LR
-
-
-def train(model, train_dl, optimizer):
-    cum_loss = 0.
-    cum_acc = 0.
-    loss_fn = nn.BCEWithLogitsLoss()
-
-    model.train()
-    for x, y, l in train_dl:
-        optimizer.zero_grad()
-        
-        x = x.to(DEVICE)
-        y = y.to(DEVICE)
-        l = l.to(DEVICE)
-
-        y_est = model(x, l)
-
-        loss = loss_fn(y_est, y.unsqueeze(-1))
-        loss.backward()
-        optimizer.step()
-
-        cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
-
-    return cum_loss / len(train_dl), cum_acc / len(train_dl)
-
-
-@torch.no_grad()
-def evaluate(model, val_dl):
-    cum_loss = 0.
-    cum_acc = 0.
-    loss_fn = nn.BCEWithLogitsLoss()
-
-    model.eval()
-    for x, y, l in val_dl:
-        x = x.to(DEVICE)
-        y = y.to(DEVICE)
-        l = l.to(DEVICE)
-        
-        y_est = model(x, l)
-
-        loss = loss_fn(y_est, y.unsqueeze(-1))
-
-        cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
-
-    return cum_loss / len(val_dl), cum_acc / len(val_dl)
+from settings import SAVE, SAVE_PATH_GRU, WEIGHT_DECAY, BATCH_SIZE_GRU_SUBJ, EPOCHS_GRU, DEVICE, LR_GRU
+from train_utils import evaluate, train
+from utils import collate_fn, make, make_w2id, split_dataset, init_weights
 
 
 def main():
@@ -89,15 +43,15 @@ def main():
     model = GRUAttention(num_embeddings=w2id_size).to(DEVICE)
     model.apply(init_weights)
     
-    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    optimizer = optim.Adam(model.parameters(), lr=LR_GRU, weight_decay=WEIGHT_DECAY)
 
     best_model = None
     best_test_acc = 0
-    for i in range(EPOCHS):
+    for i in range(EPOCHS_GRU):
         start = time.time()
         new_best = False
 
-        loss_tr, acc_tr = train(model, train_dl, optimizer)
+        loss_tr, acc_tr = train(model, optimizer, train_dl)
         loss_test, acc_test = evaluate(model, test_dl)
 
         if acc_test > best_test_acc:
