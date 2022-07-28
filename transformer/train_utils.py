@@ -10,7 +10,7 @@ from tqdm.auto import tqdm
 from settings import DEVICE
 from utils import metrics
 
-def train(model, train_dl, optimizer):
+def train(model, optimizer, train_dl):
     cum_loss = 0.
     cum_acc = 0.
     cum_f1 = 0.
