@@ -8,11 +8,12 @@ from torch import nn
 from tqdm.auto import tqdm
 
 from settings import DEVICE
-from utils import acc
+from utils import metrics
 
 def train(model, train_dl, optimizer):
-    cum_loss = 0
-    cum_acc = 0
+    cum_loss = 0.
+    cum_acc = 0.
+    cum_f1 = 0.
     loss_fn = nn.BCEWithLogitsLoss()
 
     model.train()
@@ -30,15 +31,18 @@ def train(model, train_dl, optimizer):
         optimizer.step()
 
         cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
+        acc, f1 = metrics(torch.sigmoid(y_est), y)
+        cum_acc += acc
+        cum_f1 += f1
 
-    return cum_loss / len(train_dl), cum_acc / len(train_dl)
+    return cum_loss / len(train_dl), cum_acc / len(train_dl), cum_f1 / len(train_dl)
 
 
 @torch.no_grad()
 def evaluate(model, val_dl):
-    cum_loss = 0
-    cum_acc = 0
+    cum_loss = 0.
+    cum_acc = 0.
+    cum_f1 = 0.
     loss_fn = nn.BCEWithLogitsLoss()
 
     model.eval()
@@ -52,6 +56,8 @@ def evaluate(model, val_dl):
         loss = loss_fn(y_est, y.unsqueeze(-1))
 
         cum_loss += loss.item()
-        cum_acc += acc(torch.sigmoid(y_est), y)
+        acc, f1 = metrics(torch.sigmoid(y_est), y)
+        cum_acc += acc
+        cum_f1 += f1
 
-    return cum_loss / len(val_dl), cum_acc / len(val_dl)
+    return cum_loss / len(val_dl), cum_acc / len(val_dl), cum_f1 / len(val_dl)

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import torch
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import StratifiedKFold
 from torch import nn
 from torch.utils.data import DataLoader
@@ -61,11 +61,13 @@ def collate_fn(batch):
     return X, y, lengths
 
 
-def acc(y_est, y):
+def metrics(y_est, y):
     """
     Compute the accuracy
     """
-    return accuracy_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
+    acc = accuracy_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
+    f1 = f1_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
+    return acc, f1
 
 
 def list2str(l):

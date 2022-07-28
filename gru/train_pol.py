@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from dataset import PolarityDataset
 from model import GRUAttention
-from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS_GRU, FILTER, LR_GRU, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
+from settings import BATCH_SIZE_GRU_POL, DEVICE, EPOCHS_GRU, FILTER, FOLD_N, LR_GRU, SAVE, SAVE_PATH_GRU, WEIGHT_DECAY
 from train_utils import evaluate, train
 from utils import collate_fn, init_weights, make, make_w2id, remove_objective_sents_nn, split_dataset
 
@@ -76,8 +76,8 @@ def main():
         start = time.time()
         new_best = False
 
-        loss_tr, acc_tr = train(model, optimizer, train_dl)
-        loss_test, acc_test = evaluate(model, test_dl)
+        loss_tr, acc_tr, f1_tr = train(model, optimizer, train_dl)
+        loss_test, acc_test, f1_test = evaluate(model, test_dl)
 
         if acc_test > best_test_acc:
             best_model = copy.deepcopy(model)
@@ -85,22 +85,21 @@ def main():
             new_best = True
 
         print(f"Epoch {i+1}")
-        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}")
-        print(f"\tTest Loss: {loss_test:.3f}\tTest Acc: {acc_test:.3f}")
+        print(f"\tTrain Loss: {loss_tr:.3f}\tTrain Acc: {acc_tr:.3f}\tTrain F1: {f1_tr:.3f}")
+        print(f"\tTest Loss: {loss_test:.3f}\tTest Acc: {acc_test:.3f}\tTest F1: {f1_test:.3f}")
         print(f"\tElapsed: {time.time() - start:.3f}")
         if new_best: print("\tNew Best Model")
         
         print("")
 
-    loss_ts, acc_ts = evaluate(best_model, test_dl)
+    loss_ts, acc_ts, f1_ts = evaluate(best_model, test_dl)
     print(f"Best weights:")
-    print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f}")
+    print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f} - F1: {f1_ts:.3f}")
 
     if SAVE:
         make(SAVE_PATH_GRU)
-        acc = str(acc_ts).split('.')[-1]
-        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, f"pol_cls_{acc}.pth"))
-        with open(os.path.join(SAVE_PATH_GRU, f"pol_w2id_{acc}.pkl"), 'wb') as f:
+        torch.save(best_model.state_dict(), os.path.join(SAVE_PATH_GRU, f"pol_cls_{FOLD_N}.pth"))
+        with open(os.path.join(SAVE_PATH_GRU, f"pol_w2id_{FOLD_N}.pkl"), 'wb') as f:
             pickle.dump(w2id, f)
         print("Weights saved")
 
