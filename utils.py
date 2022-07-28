@@ -7,7 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 from torch import nn
 from torch.utils.data import DataLoader
 
-from lstm import dataset as lstm_ds
+from gru import dataset as gru_ds
 from settings import DEVICE, FOLD_N, N_SPLITS, PAD_TOKEN, RANDOM_STATE
 from transformer import dataset as trans_ds
 
@@ -92,7 +92,7 @@ def remove_objective_sents_nn(classifier, w2id, document):
     """
     Remove the objective sentences from a document and returns the filtered document.
     """
-    ds = lstm_ds.SubjectivityDataset(document, [0]*len(document), w2id)
+    ds = gru_ds.SubjectivityDataset(document, [0]*len(document), w2id)
     dl = DataLoader(ds, batch_size=len(document), shuffle=False, collate_fn=collate_fn)
     it = dl.__iter__()
     x, y, l = it.__next__()
