@@ -9,14 +9,13 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import cross_validate, StratifiedKFold
 
 from utils import list2str, remove_objective_sents, make
-from settings import SAVE_PATH_BASELINE
+from settings import N_SPLITS, RANDOM_STATE, SAVE_PATH_BASELINE
 
 
 def train_subjectivity_classifier():
     """
     0.92 +-0.01 f1
     """
-
     # init classifier and vectorizer for Polairty classification
     vectorizer = CountVectorizer()
     eval_classifier = MultinomialNB()
@@ -31,8 +30,9 @@ def train_subjectivity_classifier():
     targets = [0] * len(obj) + [1] * len(subj)
 
     # train and evaluate
-    scores = cross_validate(eval_classifier, vectors, targets, cv=StratifiedKFold(n_splits=10), scoring=['f1_micro'])
-    scores = np.array(scores['test_f1_micro'])
+    cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
+    scores = cross_validate(eval_classifier, vectors, targets, cv=cv, scoring=['accuracy'])
+    scores = np.array(scores['test_accuracy'])
 
     classifier = MultinomialNB()
     classifier.fit(vectors, targets)
@@ -63,8 +63,9 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     targets = [0] * len(neg) + [1] * len(pos)
 
     # train and evaluate
-    scores = cross_validate(eval_classifier, vectors, targets, cv=StratifiedKFold(n_splits=10), scoring=['f1_micro'])
-    scores = np.array(scores['test_f1_micro'])
+    cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
+    scores = cross_validate(eval_classifier, vectors, targets, cv=cv, scoring=['accuracy'])
+    scores = np.array(scores['test_accuracy'])
 
     classifier = MultinomialNB()
     classifier.fit(vectors, targets)

@@ -1,13 +1,14 @@
 import os
+import numpy as np
 import torch
 
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold
 from torch import nn
 from torch.utils.data import DataLoader
 
 from gru import dataset as gru_ds
-from settings import DEVICE, PAD_TOKEN
+from settings import DEVICE, FOLD_N, N_SPLITS, PAD_TOKEN, RANDOM_STATE
 from transformer import dataset as trans_ds
 
 
@@ -134,8 +135,17 @@ def split_dataset(dataset, labels):
     Split dataset in train, validation and test set.
     Uses GENERATOR_SEED defined in settings to keep the test set fixed across runs.
     """
+    cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
+    fold = list(cv.split(dataset, labels))[FOLD_N]
 
-    train_set, test_set, y_train, y_test = train_test_split(dataset, labels, test_size=0.1)
+    dataset = np.array(dataset, dtype=np.object0)
+    labels = np.array(labels)
+
+    train_set = dataset[fold[0]]
+    y_train = labels[fold[0]]
+
+    test_set = dataset[fold[1]]
+    y_test = labels[fold[1]]
     
     return train_set, y_train, test_set, y_test
 
