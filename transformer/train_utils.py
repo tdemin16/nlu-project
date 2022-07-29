@@ -59,6 +59,6 @@ def evaluate(model, test_dl):
         cum_y_est.extend(torch.round(torch.sigmoid(y_est.squeeze(-1))).cpu().detach().numpy())
         cum_y.extend(y.cpu().detach().numpy())
     
-    acc, f1 = metrics(cum_y_est, cum_y)
+    acc, f1 = metrics(cum_y_est, cum_y, unpack=False)
 
     return cum_loss / len(test_dl), acc, f1

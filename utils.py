@@ -61,12 +61,15 @@ def collate_fn(batch):
     return X, y, lengths
 
 
-def metrics(y_est, y):
+def metrics(y_est, y, unpack=True):
     """
     Compute the accuracy
     """
-    acc = accuracy_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
-    f1 = f1_score(y.cpu().detach().numpy(), torch.round(y_est).cpu().detach().numpy())
+    if unpack:
+        y = y.cpu().detach().numpy()
+        y_est = torch.round(y_est).cpu().detach().numpy()
+    acc = accuracy_score(y, y_est)
+    f1 = f1_score(y, y_est)
     return acc, f1
 
 
