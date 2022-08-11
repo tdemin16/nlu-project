@@ -80,6 +80,13 @@ def list2str(l):
     return ' '.join(w for w in l)
 
 
+def lol2str(d):
+    """
+    Returns a string from a document
+    """
+    return ' '.join(w for s in d for w in s)
+
+
 def remove_objective_sents(classifier, vectorizer, document):
     """
     Remove the objective sentences from a document and returns the filtered document.

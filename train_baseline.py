@@ -8,8 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import cross_validate, StratifiedKFold
 
-from utils import list2str, remove_objective_sents, make
-from settings import N_SPLITS, RANDOM_STATE, SAVE_PATH_BASELINE
+from utils import list2str, lol2str, remove_objective_sents, make
+from settings import FILTER, N_SPLITS, RANDOM_STATE, SAVE_PATH_BASELINE
 
 
 def train_subjectivity_classifier():
@@ -54,12 +54,16 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     pos = movie_reviews.paras(categories='pos')
 
     # filter phrases
-    filtered_corpus = []
-    for d in neg + pos:
-        filtered_corpus.append(remove_objective_sents(subj_classifier, subj_vectorizer, d))
+    if FILTER:
+        corpus = []
+        for d in neg + pos:
+            corpus.append(remove_objective_sents(subj_classifier, subj_vectorizer, d))
+    else:
+        corpus = neg + pos
+        corpus = [lol2str(d) for d in corpus]
     
     # build dataset
-    vectors = vectorizer.fit_transform(filtered_corpus)
+    vectors = vectorizer.fit_transform(corpus)
     targets = [0] * len(neg) + [1] * len(pos)
 
     # train and evaluate
