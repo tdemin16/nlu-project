@@ -14,6 +14,17 @@ from settings import FILTER, N_SPLITS, RANDOM_STATE, SAVE_PATH_BASELINE
 
 def train_subjectivity_classifier():
     """
+    Train the subjectivity classifier using Stratified K-Fold with 5 splits.
+
+    Returns:
+    -----
+    scores:
+        List of scores, one for each fold
+    classifier:
+        Trained MultinomialNB
+    vectorizer:
+        Trained CountVectorizer
+
     0.92 +-0.01 f1
     """
     # init classifier and vectorizer for Polairty classification
@@ -24,7 +35,7 @@ def train_subjectivity_classifier():
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
     
-    # build dataset
+    # preprocess dataset
     corpus = [list2str(d) for d in obj] + [list2str(d) for d in subj]
     vectors = vectorizer.fit_transform(corpus)
     targets = [0] * len(obj) + [1] * len(subj)
@@ -33,7 +44,8 @@ def train_subjectivity_classifier():
     cv = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
     scores = cross_validate(eval_classifier, vectors, targets, cv=cv, scoring=['accuracy'])
     scores = np.array(scores['test_accuracy'])
-
+    
+    # train the classifier on the whole dataset
     classifier = MultinomialNB()
     classifier.fit(vectors, targets)
 
@@ -42,6 +54,17 @@ def train_subjectivity_classifier():
 
 def train_polarity_classifier(subj_classifier, subj_vectorizer):
     """
+    Train the polarity classifier using Stratified K-Fold with 5 splits.
+
+    Returns:
+    -----
+    scores:
+        List of scores, one for each fold
+    classifier:
+        Trained MultinomialNB
+    vectorizer:
+        Trained CountVectorizer
+
     With filtering objective phrases: 0.84 +-0.03 f1
     Withoud filtering objective phrases: 0.81 +-0.03 f1
     """
@@ -53,16 +76,18 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     neg = movie_reviews.paras(categories='neg')
     pos = movie_reviews.paras(categories='pos')
 
-    # filter phrases
+    # filter phrases based on FILTER setting
     if FILTER:
+        # filtering
         corpus = []
         for d in neg + pos:
             corpus.append(remove_objective_sents(subj_classifier, subj_vectorizer, d))
     else:
+        # no filtering
         corpus = neg + pos
         corpus = [lol2str(d) for d in corpus]
     
-    # build dataset
+    # preprocess dataset
     vectors = vectorizer.fit_transform(corpus)
     targets = [0] * len(neg) + [1] * len(pos)
 
@@ -71,6 +96,7 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     scores = cross_validate(eval_classifier, vectors, targets, cv=cv, scoring=['accuracy'])
     scores = np.array(scores['test_accuracy'])
 
+    # train the classifier on the whole dataset
     classifier = MultinomialNB()
     classifier.fit(vectors, targets)
 
@@ -78,12 +104,15 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
 
 
 def main():
+    # train subjectivity classifier
     subj_scores, subj_classifier, subj_vectorizer = train_subjectivity_classifier()
-    print(f"Naive Bayes F1 score on subjectivity classification:\n\tAverage: {subj_scores.mean():.3f}\n\tSTD: {subj_scores.std():.3f}")
+    print(f"Naive Bayes Accuracy on subjectivity classification:\n\tAverage: {subj_scores.mean():.3f}\n\tSTD: {subj_scores.std():.3f}")
 
+    # train polarity classifier
     pol_scores, pol_classifier, pol_vectorizer = train_polarity_classifier(subj_classifier, subj_vectorizer)
-    print(f"Naive Bayes F1 score on polarity classification:\n\tAverage: {pol_scores.mean():.3f}\n\tSTD: {pol_scores.std():.3f}")
+    print(f"Naive Bayes Accuracy on polarity classification:\n\tAverage: {pol_scores.mean():.3f}\n\tSTD: {pol_scores.std():.3f}")
 
+    # save trained weights
     make(SAVE_PATH_BASELINE)
     joblib.dump(subj_classifier, os.path.join(SAVE_PATH_BASELINE, 'subj_cls.joblib'))
     joblib.dump(subj_vectorizer, os.path.join(SAVE_PATH_BASELINE, 'subj_vec.joblib'))

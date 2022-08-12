@@ -6,6 +6,7 @@ ROOT_DIR=os.path.dirname(__file__)
 SAVE_PATH_BASELINE=os.path.join(ROOT_DIR, 'weights/baseline')
 SAVE_PATH_GRU=os.path.join(ROOT_DIR, 'weights/gru')
 SAVE_PATH_TRANSFORMER=os.path.join(ROOT_DIR, 'weights/transformer')
+TEST_DIR=os.path.join(ROOT_DIR, "test")
 
 # CV
 N_SPLITS=5
@@ -38,4 +39,4 @@ ATTENTION=False
 # MISC
 DEVICE="cuda" if torch.cuda.is_available() else "cpu"
 SAVE=True if DEVICE == "cuda" else False
-FILTER=True # Whether to filter or not objective sentences
+FILTER=False # Whether to filter or not objective sentences

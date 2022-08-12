@@ -1,3 +1,6 @@
+"""
+The purpose of this file is to store utility functions, no main is present.
+"""
 import os
 import numpy as np
 import torch
