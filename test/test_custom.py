@@ -17,7 +17,7 @@ from utils import remove_objective_sents_transformer
 
 
 REVIEWS = os.path.join(TEST_DIR, "reviews.txt") # name of the reviews in the directory TEST_DIR
-FILTER = True # whether to filter or not reviews
+FILTER = False # whether to filter or not reviews
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     with open(REVIEWS, 'r') as fp:
         for line in fp:
             # remove '\n'
-            sentences = line[:-1]
+            sentences = line[:-1].lower()
             # apply tokenization in order to reuse training code
             sentences = [word_tokenize(s) for s in sent_tokenize(sentences)]
             reviews.append(sentences)
