@@ -44,3 +44,14 @@ class GRUAttention(nn.Module):
 
         y_est = self.classifier(context_vector)
         return y_est
+
+    def get_attention_heatmap(self, x, l):
+        embedding = self.embedding(x)
+        packed_input = pack_padded_sequence(embedding, l.cpu().numpy(), batch_first=True)
+
+        packed_output, hidden_state = self.gru(packed_input)
+        alpha, input_sizes = pad_packed_sequence(packed_output, batch_first=True)
+
+        return self.attention(alpha)
+
+        
