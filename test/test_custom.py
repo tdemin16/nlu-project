@@ -22,6 +22,7 @@ FILTER = False # whether to filter or not reviews
 
 def main():
     reviews = []
+    # load custom reviews
     with open(REVIEWS, 'r') as fp:
         for line in fp:
             # remove '\n'

@@ -16,6 +16,14 @@ from transformer import dataset as trans_ds
 
 
 class FilteredData:
+    """
+    Collect positive and negative sentences in a file.
+    Used to store the dataset filtered using transformers.
+    The rationale is that the computation takes lots of time,
+    thus, once the BERT subjectivity classifier is trained 
+    and the weights selected, the filtered dataset is computed
+    only once to spare computation.
+    """
     def __init__(self, neg, pos):
         self.neg = neg
         self.pos = pos
@@ -66,7 +74,14 @@ def collate_fn(batch):
 
 def metrics(y_est, y, unpack=True):
     """
-    Compute the accuracy
+    Compute the accuracy and F1-score.
+
+    Params:
+    -----
+    y_est: tensor of predicted classes
+    y: ground truth
+    unpack: bool, if True move the two tensor to cpu and map to numpy.
+        Used during test phase to avoid issues in computing the F1-score.
     """
     if unpack:
         y = y.cpu().detach().numpy()
@@ -141,6 +156,9 @@ def remove_objective_sents_transformer(classifier, document):
 
 
 def make(path):
+    """
+    Create path if it does not exist.
+    """
     if not os.path.exists(path):
         os.makedirs(path)
 

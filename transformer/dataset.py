@@ -12,9 +12,14 @@ class SubjectivityDataset(Dataset):
     1 are subjective ones
     """
     def __init__(self, data, targets):
+        """
+        data: list of sentences
+        targets: binary list of labels associated to data
+        """
         super().__init__()
         assert len(data) == len(targets), "data and targets length is not the same"
         tokenizer = AutoTokenizer.from_pretrained("cffl/bert-base-styleclassification-subjective-neutral")
+        # tokenize with padding
         encoding = tokenizer([' '.join(d) for d in data], return_tensors="pt", padding=True)
         self.corpus = encoding['input_ids']
         self.att_mask = encoding['attention_mask']
@@ -35,8 +40,13 @@ class PolarityDataset(Dataset):
     # cardiffnlp/twitter-xlm-roberta-base-sentiment
     # cmarkea/distilcamembert-base-sentiment
     def __init__(self, data, targets):
+        """
+        data: list of sentences
+        targets: binary list of labels associated to data
+        """
         super().__init__()
         tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
+        # tokenize with padding and truncate data to 512 words
         encoding = tokenizer(
             [self._lol2str(d) for d in data], 
             return_tensors="pt", 

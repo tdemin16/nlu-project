@@ -1,0 +1,13 @@
+name: nlu
+channels:
+  - defaults
+dependencies:
+  - nltk
+  - spacy
+  - scikit-learn
+  - scikit-learn-intelex
+  - ipykernel
+  - pandas
+  - transformers
+  - matplotlib
+prefix: /home/thomas/anaconda3/envs/nlu

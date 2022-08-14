@@ -1,3 +1,7 @@
+"""
+The purpose of this file is to filter out objective sentences using a trained
+BERT encoder to spare time duing training of the polarity classifier.
+"""
 import os
 import pickle
 import sys
@@ -13,32 +17,38 @@ from utils import FilteredData, remove_objective_sents_transformer
 
 
 def main():
+    # Get data
     neg = movie_reviews.paras(categories='neg')
     pos = movie_reviews.paras(categories='pos')
+    
+    #? Reduces the size of the dataset when running on CPU.
+    #? Less comuputational requirements during test
     if DEVICE != "cuda":
-        #? Reduces the size of the dataset when running on CPU.
-        #? Less comuputational requirements during test
         neg = neg[:10]
         pos = pos[:10]
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
 
+    # Load subjectivity detector
     subj_det = AutoModelForSequenceClassification.from_pretrained(
             os.path.join(SAVE_PATH_TRANSFORMER, "subj"),
         ).to(DEVICE)
     subj_det.eval()
 
+    # filter negative sentences
     filt_neg = []
     for doc in tqdm(neg, desc="neg", leave=False):
         filt_doc = remove_objective_sents_transformer(subj_det, doc)
         if len(filt_doc) > 0:
             filt_neg.append(filt_doc)
 
+    # filter positive sentences
     filt_pos = []
     for doc in tqdm(pos, desc="pos", leave=False):
         filt_doc = remove_objective_sents_transformer(subj_det, doc)
         if len(filt_doc) > 0:
             filt_pos.append(filt_doc)
 
+    # Build a unique dataset so it can be stored in a file
     filt_data = FilteredData(filt_neg, filt_pos)
     with open(os.path.join(SAVE_PATH_TRANSFORMER, "filt_data.pkl"), "wb") as fp:
         pickle.dump(filt_data, fp)

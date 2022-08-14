@@ -17,15 +17,18 @@ from utils import split_dataset, make
 
 
 def main():
+    # Get data
     obj = subjectivity.sents(categories='obj')
     subj = subjectivity.sents(categories='subj')
+
+    #? Reduces the size of the dataset when running on CPU.
+    #? Less comuputational requirements during test
     if DEVICE != "cuda":
-        #? Reduces the size of the dataset when running on CPU.
-        #? Less comuputational requirements during test
         obj = obj[:20]
         subj = subj[:20]
         print("[Warning] Cuda not detected, a subset of the dataset will be used.")
 
+    # Compute lebels and split in train/test set
     labels = [0] * len(obj) + [1] * len(subj)
     train_set, y_train, test_set, y_test = split_dataset(obj + subj, labels)
 
@@ -51,6 +54,8 @@ def main():
         loss_tr, acc_tr, f1_tr = train(model, optimizer, train_dl)
         loss_test, acc_test, f1_test = evaluate(model, test_dl)
 
+        # save new best model if curr test accuracy is higher than
+        # the best accuracy so far
         if acc_test > best_test_acc:
             best_model = copy.deepcopy(model)
             best_test_acc = acc_test
@@ -68,6 +73,7 @@ def main():
     print(f"Best weights")
     print(f"Loss: {loss_ts:.3f} - Acc: {acc_ts:.3f} - F1: {f1_ts:.3f}")
 
+    # save best weights
     if SAVE:
         make(SAVE_PATH_TRANSFORMER)
         best_model.save_pretrained(os.path.join(SAVE_PATH_TRANSFORMER, f"subj_{FOLD_N}"))

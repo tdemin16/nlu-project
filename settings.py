@@ -8,12 +8,12 @@ SAVE_PATH_GRU=os.path.join(ROOT_DIR, 'weights/gru')
 SAVE_PATH_TRANSFORMER=os.path.join(ROOT_DIR, 'weights/transformer')
 TEST_DIR=os.path.join(ROOT_DIR, "test")
 
-# CV
+# Cross Validation
 N_SPLITS=5
 RANDOM_STATE=0
-FOLD_N=0
+FOLD_N=0 # Change the fold number in NN training
 
-# WD
+# WD coefficient of GRU
 WEIGHT_DECAY=0
 
 # BATCH_SIZES

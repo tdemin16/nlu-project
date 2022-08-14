@@ -25,7 +25,7 @@ def train_subjectivity_classifier():
     vectorizer:
         Trained CountVectorizer
 
-    0.92 +-0.01 f1
+    f1 0.92 +-0.01
     """
     # init classifier and vectorizer for Polairty classification
     vectorizer = CountVectorizer()
@@ -65,8 +65,8 @@ def train_polarity_classifier(subj_classifier, subj_vectorizer):
     vectorizer:
         Trained CountVectorizer
 
-    With filtering objective phrases: 0.84 +-0.03 f1
-    Withoud filtering objective phrases: 0.81 +-0.03 f1
+    f1 With filtering objective phrases: 0.84 +-0.03
+    f1 Withoud filtering objective phrases: 0.81 +-0.03
     """
     # init classifier and vectorizer for Polairty classification
     vectorizer = CountVectorizer()
