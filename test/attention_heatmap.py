@@ -29,7 +29,7 @@ def make_heatmap_1d(att, words):
     fig, ax = plt.subplots()
     im = ax.imshow(att, cmap=plt.get_cmap("magma"))
 
-    cbar = ax.figure.colorbar(im, ax=ax, orientation="horizontal", cmap=plt.get_cmap("magma"), pad=0.3)
+    cbar = ax.figure.colorbar(im, ax=ax, orientation="horizontal", cmap=plt.get_cmap("magma"), pad=0.7)
 
     ax.set_xticks(np.arange(len(words)), labels=words)
     ax.axes.yaxis.set_visible(False)
@@ -37,6 +37,8 @@ def make_heatmap_1d(att, words):
 
     ax.set_title("Attention for subjectivity detection")
     fig.tight_layout()
+    fig.set_figheight(2)
+
     plt.show()
 
 

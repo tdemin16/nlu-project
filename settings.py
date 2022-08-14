@@ -34,7 +34,7 @@ LR_TRANSFORMER=5e-5
 EMBEDDING_SIZE=256
 GRU_SIZE=128
 PAD_TOKEN=0
-ATTENTION=False
+ATTENTION=True
 
 # MISC
 DEVICE="cuda" if torch.cuda.is_available() else "cpu"
