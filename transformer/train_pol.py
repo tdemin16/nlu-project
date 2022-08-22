@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoModelForSequenceClassification
 
 from dataset import PolarityDataset
-from settings import BATCH_SIZE_TRANSFORMER_POL, DEVICE, EPOCHS_TRANSFORMER, FILTER, FOLD_N, LR_TRANSFORMER, SAVE, SAVE_PATH_TRANSFORMER
+from settings import BATCH_SIZE_TRANSFORMER_POL, DEVICE, EPOCHS_TRANSFORMER, FILTER, FOLD_N, LR_TRANSFORMER, ROOT_DIR, SAVE, SAVE_PATH_TRANSFORMER
 from train_utils import evaluate, train
 from utils import FilteredData, split_dataset, make
 
@@ -22,7 +22,7 @@ def main():
     if FILTER:
         path = os.path.join(SAVE_PATH_TRANSFORMER, "filt_data.pkl")
         if not os.path.exists(path):
-            print("[ERROR] No filtered data found!\nUse {os.path.join(ROOT_DIR, 'transformer', 'filter_sents.py')} to filter it.")
+            print(f"[ERROR] No filtered data found!\nUse {os.path.join(ROOT_DIR, 'transformer', 'filter_sents.py')} to filter it.")
             exit(1)
         
         with open(path, "rb") as fp:
