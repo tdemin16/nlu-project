@@ -18,7 +18,7 @@ $ python3 -m venv nlu_env
 $ source nlu_env/bin/activate
 $ pip install requirements.txt
 ```
-> Be sure to create a virtual environment with Python 3.9.7 otherwise it is not guaranteed to run appropriately.
+> Be sure to create a virtual environment with Python 3.9.7 otherwise it is not guaranteed to work.
 
 ## Settings
 In order to simplify the execution, each training setting can be changed in `settings.py`. There you can find:
