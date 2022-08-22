@@ -3,6 +3,9 @@ In this repository you can find the source code for the Natural Language Underst
 Please read the project's report before running the code.
 The code is written in Python 3.9.7 and has not been tested with other versions.
 
+## Trained weights
+The trained weights are available [here](https://drive.google.com/drive/folders/10RVRNd8bQQB6rzsvvKX6oSMlxHTDNFw1?usp=sharing). Some weights are not there due to problems related to Colab Sessions. In some cases, Colab session dropped before I was able to store them. In any case, at least 1 set of weights is available for each setting.
+
 ## Environment
 The code has been developed using a conda environment, so to set it up run:
 ```bash
@@ -15,7 +18,7 @@ $ python3 -m venv nlu_env
 $ source nlu_env/bin/activate
 $ pip install requirements.txt
 ```
-> Be sure to create a virtual environment with Python 3.9.7 otherwise it is not guaranteed it will work.
+> Be sure to create a virtual environment with Python 3.9.7 otherwise it is not guaranteed to run appropriately.
 
 ## Settings
 In order to simplify the execution, each training setting can be changed in `settings.py`. There you can find:
@@ -26,15 +29,15 @@ In order to simplify the execution, each training setting can be changed in `set
 * Training Epochs.
 * Learning Rates.
 * GRU settings:
-  * Embedding dimension
-  * Size of the hidden state
-  * Pad token
-  * Attention: This boolean settings allows turning off/on the use of attention in GRU
+  * Embedding dimension;
+  * Size of the hidden state;
+  * Pad token;
+  * Attention: This boolean settings allows turning off/on the use of attention in GRU.
 * Filter setting: Selects whether to filter or not objective sentences. Based on the approach this will change its behavior:
-  * With Naive Bayes, since both models are trained in the same run, it will use the trained subjectivity detector to filter out objective sentences.
-  * With GRU, it will load the trained weights in subjectivity detection. These will be located in `weights/gru/subj.pth`. The weights' directory is automatically created after the subjectivity detector is trained.
+  * With Naive Bayes, since both models are trained in the same run, it will use the trained subjectivity detector to filter out objective sentences;
+  * With GRU, it will load the trained weights in subjectivity detection. These will be located in `weights/gru/subj.pth`. The weights' directory is automatically created after the subjectivity detector is trained;
   * With Transformers, it will load the filtered dataset in `weights/transformer/filt_data.pkl`. To create it run `$ python transformer/filter_sents.py`
-* Device and Saving settings.
+* Device and Saving settings;
 
 ## Training
 ### Naive Bayes (1st baseline)
@@ -54,13 +57,13 @@ While, for the polarity classifier, use:
 ```bash
 $ python gru/train_pol.py
 ```
-In order to enable attention, set `ATTENTION=True` in settings.\
-To filter out objective sentences, set `FILTER=True` in settings.\
+In order to **enable attention**, set `ATTENTION=True` in settings.\
+To **filter out objective sentences**, set `FILTER=True` in settings.\
 Weights are stored in `weights/gru` with a name composed of `task_model_fold.pth`. \
-Remove "`_fold`" to use the subjectivity weights when filtering out objective sentences (e.g. `subj_cls_1.pth` $\rightarrow$ `subj_cls.pth`).
-> Make sure to train the subjectivity detector before training the polarity classifier with `FILTER=True`, otherwise it won't work.\
-> If `FILTER=True`, make sure the trained weights in subjectivity detection have been trained with the same `ATTENTION` setting as the current one.
-> Remove the "`_fold`" also to the w2id file.
+**Remove** "`_fold`" **to use the subjectivity weights when filtering out objective sentences** (e.g. `subj_cls_1.pth` $\rightarrow$ `subj_cls.pth`).
+> To filter out objective sentences, make sure to train the subjectivity detector first, and then to train the polarity classifier (use `FILTER=True`), otherwise it won't work.\
+> If `FILTER=True`, make sure the trained weights in subjectivity detection have been trained with the same `ATTENTION` setting as the current one (for polarity classification).
+> Remove the "`_fold`" also to the w2id filename.
 
 ### Transformer
 To train the subjectivity detector, use:
@@ -71,12 +74,12 @@ While, for the polarity classifier, use:
 ```bash
 $ python transformer/train_pol.py
 ```
-Since the filtering operation is much longer with transformers than GRU, the filtering operation and the training of the polarity classifier are separated.
+Since the filtering operation is much longer with transformers than GRU, filtering and training of the polarity classifier are separated.
 First you need to filter out the objective sentences and create the filtered dataset, then you can train the polarity classifier with filtered data. \
 To filter out the dataset, run:
 ```bash
 $ python transformer/filter_sents.py
 ```
 This will produce the filtered dataset, and it will store it in `weights/transformer/filter_data.pkl`.\
-Be sure that the subjectivity detector has been trained appropriately. Moreover, be sure to remove "`_fold`" as in GRU.\
+Be sure the subjectivity detector has been trained appropriately. Moreover, be sure to remove "`_fold`" as in GRU.\
 To run the polarity classifier on filtered data, set `FILTER=True` in the settings.
