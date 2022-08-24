@@ -12,7 +12,7 @@ The code has been developed using a conda environment, so to set it up run:
 $ conda env create -n nlu --file environment.yml
 ```
 
-I have also exported the requirements for a pip virtual environment. So to create a pip virtual environment, run:
+I have also exported the requirements for a pip virtual environment (but I recommend to use conda). So to create a pip virtual environment, run:
 ```bash
 $ python3 -m venv nlu_env
 $ source nlu_env/bin/activate
