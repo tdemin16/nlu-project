@@ -39,4 +39,4 @@ ATTENTION=True
 # MISC
 DEVICE="cuda" if torch.cuda.is_available() else "cpu"
 SAVE=True if DEVICE == "cuda" else False
-FILTER=False # Whether to filter or not objective sentences
+FILTER=True # Whether to filter or not objective sentences

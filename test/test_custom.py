@@ -1,5 +1,10 @@
 """
 Use this file to run subjectivity detection and polarity classification on custom movie reviews.
+
+Requirements:
+ - Trainied Transformer on subjectivity detection
+ - Trained transformer on polarity classification
+Both placed in the default directory
 """
 import os
 import sys
@@ -66,11 +71,11 @@ def main():
     a.to(DEVICE)
 
     # get estimations
-    est_subj = torch.sigmoid(pol_cls(x, a).logits)
-    est_subj = torch.round(est_subj).cpu().detach()
+    est_pol = torch.sigmoid(pol_cls(x, a).logits)
+    est_pol = torch.round(est_pol).cpu().detach()
     
     # print estimations
-    for e in est_subj:
+    for e in est_pol:
         if e.int().item() == 1:
             print("positive")
         else:
