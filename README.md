@@ -40,7 +40,7 @@ In order to simplify the execution, each training setting can be changed in `set
 * Device and Saving settings;
 
 ## Training
-### Naive Bayes (1st baseline)
+### Naive Bayes (baseline)
 Both classifiers are trained by running 
 ```bash
 $ python train_baseline.py
